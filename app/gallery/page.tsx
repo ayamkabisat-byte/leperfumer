@@ -58,42 +58,29 @@ export default function GalleryPage() {
       )}
 
       {!loading && perfumes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {perfumes.map((perfume) => (
             <div
               key={perfume.id}
-              className="bg-white dark:bg-gray-800 rounded-2xl shadow-md overflow-hidden border hover:shadow-lg transition-shadow"
+              className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden shadow-md group"
             >
-              <div className="relative w-full h-64">
-                <Image
-                  src={perfume.image_url}
-                  alt={perfume.name}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </div>
-              <div className="p-5">
-                <h2 className="text-xl font-bold font-serif mb-4">{perfume.name}</h2>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <span className="font-bold text-yellow-600 block text-xs uppercase">
-                      Top Notes
-                    </span>
-                    <p className="text-gray-700 dark:text-gray-300">{perfume.top_notes}</p>
-                  </div>
-                  <div>
-                    <span className="font-bold text-pink-600 block text-xs uppercase">
-                      Heart Notes
-                    </span>
-                    <p className="text-gray-700 dark:text-gray-300">{perfume.mid_notes}</p>
-                  </div>
-                  <div>
-                    <span className="font-bold text-stone-600 block text-xs uppercase">
-                      Base Notes
-                    </span>
-                    <p className="text-gray-700 dark:text-gray-300">{perfume.base_notes}</p>
-                  </div>
+              {/* Gambar penuh */}
+              <Image
+                src={perfume.image_url}
+                alt={perfume.name}
+                fill
+                className="object-cover transition-transform duration-300 group-hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              />
+              {/* Overlay vignette hitam di bawah */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+              {/* Teks overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+                <h2 className="text-lg font-bold font-serif mb-2">{perfume.name}</h2>
+                <div className="space-y-1 text-xs">
+                  <p><span className="font-semibold text-yellow-300">Top:</span> {perfume.top_notes}</p>
+                  <p><span className="font-semibold text-pink-300">Heart:</span> {perfume.mid_notes}</p>
+                  <p><span className="font-semibold text-stone-300">Base:</span> {perfume.base_notes}</p>
                 </div>
               </div>
             </div>
