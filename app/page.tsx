@@ -210,6 +210,35 @@ export default function GeneratorPage() {
             <NotesCard title="Base Notes"  items={recipe.base} color={BLUE}   locked={locked.base}/>
           </div>
 
+          {/* Copy Blueprint */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                const blueprint =
+                  `Perfume Blueprint\n` +
+                  `Top Note : ${recipe.top.map(n => n.name).join(', ')}\n` +
+                  `Mid/Heart Note : ${recipe.mid.map(n => n.name).join(', ')}\n` +
+                  `Base Note : ${recipe.base.map(n => n.name).join(', ')}`;
+                copyToClipboard(blueprint, 'Blueprint disalin!');
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono-lab uppercase transition hover:-translate-y-px"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                color: '#b0aca4',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="4" y="4" width="9" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M3 11V3a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              Salin Blueprint
+            </button>
+          </div>
+
           <div className="flex justify-center pt-5 pb-2">
             <button onClick={analyzePerfume} disabled={aiLoading}
               className="flex items-center gap-2.5 px-7 py-3 rounded-xl font-mono-lab uppercase transition-all disabled:opacity-50"
