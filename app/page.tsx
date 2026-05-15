@@ -38,6 +38,19 @@ export default function GeneratorPage() {
     });
   };
 
+  // Add a custom note from free text
+  const addCustomNote = (layer: Layer, noteName: string) => {
+    const name = noteName.trim();
+    if (!name) return;
+    if (locked[layer].length >= counts[layer]) return;
+    const customNote: Note = {
+      name,
+      cat: 'Custom',
+      layers: [layer],
+    };
+    toggleLock(layer, customNote);
+  };
+
   const clearLocks = (layer: Layer) => setLocked(prev => ({ ...prev, [layer]: [] }));
 
   const handleGenerate = () => {
@@ -327,6 +340,7 @@ export default function GeneratorPage() {
           onToggle={(note) => toggleLock(pickerOpen, note)}
           onClear={() => clearLocks(pickerOpen)}
           onClose={() => setPickerOpen(null)}
+          onAddCustom={(name) => addCustomNote(pickerOpen, name)}
         />
       )}
 
@@ -393,18 +407,23 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-// ─────────── Note Picker Modal ───────────
-function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, onClose }: {
+// ─────────── Note Picker Modal (UPDATED) ───────────
+function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, onClose, onAddCustom }: {
   layer: Layer; maxCount: number; locked: Note[]; includeSynth: boolean;
   onToggle: (note: Note) => void; onClear: () => void; onClose: () => void;
+  onAddCustom: (name: string) => void;
 }) {
   const [search, setSearch] = useState('');
+  const [customInput, setCustomInput] = useState('');
   const color = layer === 'top' ? AMBER : layer === 'mid' ? PURPLE : BLUE;
   const lockedNames = useMemo(() => new Set(locked.map(n => n.name)), [locked]);
 
+  // Fixed: filter by layer instead of using FULL_DATABASE[layer]
   const allNotes: Note[] = useMemo(() => {
-    const base = FULL_DATABASE[layer === 'mid' ? 'mid' : layer];
-    return includeSynth ? [...base, ...FULL_DATABASE.synthetic] : base;
+    return FULL_DATABASE.filter(n => {
+      if (!includeSynth && (n.cat === 'Synth/Weird' || n.cat === 'Beverage')) return false;
+      return n.layers.includes(layer);
+    });
   }, [layer, includeSynth]);
 
   // group by category
@@ -419,6 +438,14 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
     });
     return map;
   }, [allNotes, search]);
+
+  const handleAddCustom = () => {
+    const name = customInput.trim();
+    if (!name) return;
+    if (locked.length >= maxCount) return; // already full
+    onAddCustom(name);
+    setCustomInput('');
+  };
 
   return (
     <div onClick={onClose}
@@ -448,16 +475,47 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
           </button>
         </div>
 
-        {/* Search */}
-        <div className="p-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        {/* Search + Custom Input */}
+        <div className="p-5 pb-3 space-y-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Cari note (mis. Bergamot, Rose, Oud...)"
             className="w-full px-4 py-2.5 rounded-lg outline-none"
             style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)',
               color: '#e8e6e0', fontSize: 13 }}/>
+          
+          {/* Custom note input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={customInput}
+              onChange={e => setCustomInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddCustom(); }}
+              placeholder="Atau tulis note baru (mis. andaliman)..."
+              className="flex-1 px-4 py-2.5 rounded-lg outline-none"
+              style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${color}40`,
+                color: '#e8e6e0', fontSize: 13 }}
+            />
+            <button
+              onClick={handleAddCustom}
+              disabled={locked.length >= maxCount || !customInput.trim()}
+              className="px-4 py-2.5 rounded-lg font-mono-lab uppercase transition"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.1em',
+                background: locked.length >= maxCount ? 'rgba(255,255,255,0.05)' : `${color}20`,
+                border: `1px solid ${color}60`,
+                color: locked.length >= maxCount ? '#7a7872' : color,
+                cursor: locked.length >= maxCount || !customInput.trim() ? 'not-allowed' : 'pointer',
+                opacity: locked.length >= maxCount || !customInput.trim() ? 0.5 : 1,
+              }}
+            >
+              + Tambah
+            </button>
+          </div>
+
           {locked.length > 0 && (
             <button onClick={onClear}
-              className="mt-2 font-mono-lab uppercase"
+              className="font-mono-lab uppercase"
               style={{ fontSize: 10, letterSpacing: '0.1em', color: '#7a7872',
                 background: 'none', border: 'none', cursor: 'pointer' }}>
               ↻ Hapus semua kunci
