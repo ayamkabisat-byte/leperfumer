@@ -106,9 +106,45 @@ export const getRandomItems = <T>(arr: T[], count: number): T[] => {
 };
 
 export const PREFIXES = [
+  // ── Original ──
   "L'Eau de", "Midnight", "Velvet", "Golden", "Mystic",
   "Savage", "Royal", "Secret", "Whisper of", "Oud",
   "Soleil", "Fleur de", "Elixir of",
+
+  // ── Oriental & Middle Eastern ──
+  "Amber of", "Oud de", "Majestic", "Desert", "Arabian",
+  "Saffron", "Sultan's", "Emir", "Bakhoor", "Mukhallat",
+  "Attar of", "Musk of",
+
+  // ── Nusantara, Tropical & Asian ──
+  "Nusantara", "Borneo", "Spice Island", "Archipelago",
+  "Java", "Bali", "Sumatra", "Tropics of", "Monsoon",
+  "Indochine", "Sakura", "Yūgen",
+
+  // ── Mystical, Cosmic & Spiritual ──
+  "Celestial", "Cosmic", "Ethereal", "Nebula", "Lunar",
+  "Astral", "Phantom", "Enigma of", "Sacred", "Oracle",
+  "Mythic", "Eclipse",
+
+  // ── Nature & Seasons ──
+  "Forest of", "Moss", "Rain", "Petrichor", "Oceanic",
+  "Wild", "Autumn", "Winter of", "Summer", "Spring",
+  "Bloom of", "Verdant",
+
+  // ── Dark & Mysterious ──
+  "Noir de", "Obscura", "Shadow of", "Obsidian", "Dark",
+  "Midnight in", "Gothic", "Black", "Smoke &", "Ashen",
+  "Onyx",
+
+  // ── Abstract & Niche ──
+  "Experimental", "Chaos", "Molecule", "Abstract",
+  "Couture", "Atelier", "Chimera", "Vertigo", "Mirage",
+  "Labyrinth", "Kaleidoscope", "Silhouette",
+
+  // ── Gourmand & Sensory ──
+  "Caramel", "Honey &", "Vanilla", "Cacao", "Amber",
+  "Suede", "Smoky", "Incense", "Aromatic", "Resinous",
+  "Leather", "Spicy",
 ];
 
 export interface Recipe {
