@@ -1,480 +1,571 @@
 'use client';
 
-import { useState } from 'react';
-import { 
-  Wand2, Save, Sparkles, AlertCircle, RefreshCcw, 
-  Droplets, Wind, Mountain, Plus, X, Image as ImageIcon,
-  ClipboardList
-} from 'lucide-react';
-import Image from 'next/image';
+import { useState, useMemo } from 'react';
+import {
+  getRandomRecipeWithLocks,
+  FULL_DATABASE,
+  type Recipe,
+  type Note,
+} from '@/lib/perfumeDB';
 
-export default function Home() {
-  const [topNotes, setTopNotes] = useState<string[]>([]);
-  const [midNotes, setMidNotes] = useState<string[]>([]);
-  const [baseNotes, setBaseNotes] = useState<string[]>([]);
-  const [currentTop, setCurrentTop] = useState('');
-  const [currentMid, setCurrentMid] = useState('');
-  const [currentBase, setCurrentBase] = useState('');
-  
-  // State untuk Input Bulk (Manual Copy Paste)
-  const [bulkTop, setBulkTop] = useState('');
-  const [bulkMid, setBulkMid] = useState('');
-  const [bulkBase, setBulkBase] = useState('');
+const AMBER  = 'oklch(72% 0.18 68)';
+const PURPLE = 'oklch(72% 0.18 300)';
+const BLUE   = 'oklch(72% 0.18 228)';
 
-  const [brand, setBrand] = useState('');
-  const [modelName, setModelName] = useState('');
-  const [scentType, setScentType] = useState('Eau de Parfum');
-  const [customPrompt, setCustomPrompt] = useState('');
+type Layer = 'top' | 'mid' | 'base';
 
-  const [analysisResult, setAnalysisResult] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+export default function GeneratorPage() {
+  const [counts, setCounts] = useState({ top: 2, mid: 3, base: 2 });
+  const [includeSynth, setIncludeSynth] = useState({ top: false, mid: false, base: false });
+  const [locked, setLocked] = useState<{ top: Note[]; mid: Note[]; base: Note[] }>({ top: [], mid: [], base: [] });
+  const [pickerOpen, setPickerOpen] = useState<Layer | null>(null);
+  const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState('');
+  const [promptText, setPromptText] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadStatus, setUploadStatus] = useState('');
 
-  const addNote = (type: 'top' | 'mid' | 'base') => {
-    if (type === 'top' && currentTop.trim()) {
-      setTopNotes([...topNotes, currentTop.trim()]);
-      setCurrentTop('');
-    } else if (type === 'mid' && currentMid.trim()) {
-      setMidNotes([...midNotes, currentMid.trim()]);
-      setCurrentMid('');
-    } else if (type === 'base' && currentBase.trim()) {
-      setBaseNotes([...baseNotes, currentBase.trim()]);
-      setCurrentBase('');
-    }
+  const sliderPct = (val: number) => `${((val - 1) / 9 * 100).toFixed(1)}%`;
+
+  const toggleLock = (layer: Layer, note: Note) => {
+    setLocked(prev => {
+      const exists = prev[layer].some(n => n.name === note.name);
+      if (exists) return { ...prev, [layer]: prev[layer].filter(n => n.name !== note.name) };
+      if (prev[layer].length >= counts[layer]) return prev; // max reached
+      return { ...prev, [layer]: [...prev[layer], note] };
+    });
   };
 
-  const removeNote = (type: 'top' | 'mid' | 'base', index: number) => {
-    if (type === 'top') setTopNotes(topNotes.filter((_, i) => i !== index));
-    if (type === 'mid') setMidNotes(midNotes.filter((_, i) => i !== index));
-    if (type === 'base') setBaseNotes(baseNotes.filter((_, i) => i !== index));
-  };
-
-  // Fungsi untuk memproses teks input manual
-  const handleBulkInput = () => {
-    const processNotes = (text: string, existingNotes: string[]) => {
-      if (!text.trim()) return existingNotes;
-      // Pisahkan berdasarkan koma, baris baru, atau '&'
-      const newNotes = text.split(/[,&\n]/)
-        .map(n => n.trim())
-        .filter(n => n);
-      return Array.from(new Set([...existingNotes, ...newNotes]));
+  // Add a custom note from free text
+  const addCustomNote = (layer: Layer, noteName: string) => {
+    const name = noteName.trim();
+    if (!name) return;
+    if (locked[layer].length >= counts[layer]) return;
+    const customNote: Note = {
+      name,
+      cat: 'Custom',
+      layers: [layer],
     };
-
-    if (bulkTop.trim()) setTopNotes(prev => processNotes(bulkTop, prev));
-    if (bulkMid.trim()) setMidNotes(prev => processNotes(bulkMid, prev));
-    if (bulkBase.trim()) setBaseNotes(prev => processNotes(bulkBase, prev));
-
-    // Reset form bulk
-    setBulkTop('');
-    setBulkMid('');
-    setBulkBase('');
+    toggleLock(layer, customNote);
   };
 
-  const handleAnalyze = async () => {
-    if (!brand || !modelName || topNotes.length === 0 || midNotes.length === 0 || baseNotes.length === 0) {
-      setError('Mohon lengkapi Brand, Nama, dan minimal 1 note untuk setiap tingkatan.');
-      return;
-    }
+  const clearLocks = (layer: Layer) => setLocked(prev => ({ ...prev, [layer]: [] }));
 
-    setIsAnalyzing(true);
-    setError('');
-    setAnalysisResult('');
-    setImageUrl('');
+  const handleGenerate = () => {
+    setAiResult(''); setPromptText(''); setErrorMsg(''); setUploadStatus('');
+    setRecipe(getRandomRecipeWithLocks(counts, includeSynth, locked));
+  };
 
+  const analyzePerfume = async () => {
+    if (!recipe) return;
+    setAiLoading(true); setErrorMsg('');
+    const userKey = localStorage.getItem('gemini_user_key') || '';
     try {
-      const response = await fetch('/api/analyze', {
+      const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(userKey ? { 'X-Gemini-Key': userKey } : {}) },
         body: JSON.stringify({
-          brand,
-          modelName,
-          scentType,
-          topNotes,
-          midNotes,
-          baseNotes,
-          customPrompt
+          topNotes:  recipe.top.map(n => n.name),
+          midNotes:  recipe.mid.map(n => n.name),
+          baseNotes: recipe.base.map(n => n.name),
         }),
       });
-
-      if (!response.ok) {
-        throw new Error('Gagal menganalisis parfum');
-      }
-
-      const data = await response.json();
-      setAnalysisResult(data.analysis);
-      if (data.imageUrl) {
-        setImageUrl(data.imageUrl);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan saat analisis.');
-    } finally {
-      setIsAnalyzing(false);
-    }
+      const data = await res.json();
+      if (data.error) { setErrorMsg(data.error); return; }
+      setAiResult(data.html); setPromptText(data.promptText || '');
+    } catch (err: any) { setErrorMsg(`Gagal memuat AI: ${err.message}`); }
+    finally { setAiLoading(false); }
   };
 
-  const handleSave = async () => {
-    if (!analysisResult) return;
-    
-    setIsSaving(true);
-    setError('');
-    setSuccess('');
+  const copyToClipboard = (text: string, msg = 'Berhasil disalin!') => {
+    navigator.clipboard.writeText(text).then(() => alert(msg)).catch(() => alert('Gagal menyalin'));
+  };
 
+  const handleUpload = async () => {
+    if (!uploadFile || !recipe) return;
+    setUploadStatus('Mengunggah...');
+    const fd = new FormData();
+    fd.append('file', uploadFile);
+    fd.append('name', recipe.name);
+    fd.append('top_notes',  recipe.top.map(n => n.name).join(', '));
+    fd.append('mid_notes',  recipe.mid.map(n => n.name).join(', '));
+    fd.append('base_notes', recipe.base.map(n => n.name).join(', '));
     try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand,
-          name: modelName,
-          type: scentType,
-          top_notes: topNotes,
-          mid_notes: midNotes,
-          base_notes: baseNotes,
-          ai_analysis: analysisResult,
-          image_url: imageUrl || null
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gagal menyimpan ke database');
-      }
-
-      setSuccess('Parfum berhasil disimpan ke dalam Gallery!');
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan saat menyimpan.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleReset = () => {
-    setTopNotes([]);
-    setMidNotes([]);
-    setBaseNotes([]);
-    setBrand('');
-    setModelName('');
-    setCustomPrompt('');
-    setAnalysisResult('');
-    setImageUrl('');
-    setError('');
-    setSuccess('');
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      const data = await res.json();
+      if (data.error) setUploadStatus(`❌ ${data.error}`);
+      else { setUploadStatus('✓ Berhasil diunggah ke Galeri!'); setUploadFile(null); }
+    } catch (err: any) { setUploadStatus(`❌ Error: ${err.message}`); }
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-3">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 flex items-center justify-center gap-3">
-          <Sparkles className="w-10 h-10 text-slate-700" />
-          Le Perfumer AI
+    <main className="max-w-3xl mx-auto px-5 pb-20">
+      <header className="text-center pt-16 pb-12">
+        <h1 className="font-serif-lab font-light"
+          style={{ fontSize: 'clamp(42px, 7vw, 72px)', letterSpacing: '0.02em', lineHeight: 1.1,
+            background: `linear-gradient(135deg, ${AMBER} 0%, #e8e6e0 55%, ${PURPLE} 100%)`,
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Laboratorium Aroma
         </h1>
-        <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-          Arsitek Aroma Digital Anda. Bedah racikan notes dan temukan filosofi di balik setiap mahakarya parfum.
+        <p className="font-mono-lab uppercase mt-3" style={{ fontSize: '12px', letterSpacing: '0.12em', color: '#7a7872' }}>
+          Database 1.800+ notes · Racik dan bedah mahakarya Anda
         </p>
-      </div>
+      </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Input Form */}
-        <div className="lg:col-span-7 space-y-6">
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 className="text-xl font-bold text-slate-800 mb-6 border-b pb-3">Informasi Profil Parfum</h2>
-            
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Brand Parfum</label>
-                <input 
-                  type="text" 
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="e.g. Dior, Chanel, HMNS" 
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-all outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Nama / Model</label>
-                <input 
-                  type="text" 
-                  value={modelName}
-                  onChange={(e) => setModelName(e.target.value)}
-                  placeholder="e.g. Sauvage, Orgasm" 
-                  className="w-full p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition-all outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="mb-8">
-          <label className="block text-sm font-semibold text-slate-700 mb-1">Tipe / Konsentrasi</label>
-          <select 
-            value={scentType}
-            onChange={(e) => setScentType(e.target.value)}
-            className="w-full p-2.5 border border-slate-300 rounded-lg bg-white focus:ring-2 focus:ring-slate-500 focus:border-slate-500 outline-none"
-          >
-            <option>Eau de Cologne (EdC)</option>
-            <option>Eau de Toilette (EdT)</option>
-            <option>Eau de Parfum (EdP)</option>
-            <option>Extrait de Parfum</option>
-          </select>
+      {/* Formula Panel */}
+      <div className="panel-lab p-7 mb-4">
+        <div className="flex items-center gap-3 mb-5 font-mono-lab uppercase"
+          style={{ fontSize: '11px', letterSpacing: '0.18em', color: '#7a7872' }}>
+          Formula
+          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.14)' }}></div>
         </div>
 
-        {/* Input Manual Lengkap */}
-        <div className="mb-8 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <ClipboardList className="w-4 h-4 text-slate-600" />
-            Input Notes Cepat (Copy-Paste)
-          </h3>
-          <p className="text-xs text-slate-500 mb-4">
-            Pisahkan setiap note dengan koma (,) atau baris baru pada masing-masing tingkatan.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Top Notes</label>
-              <textarea
-                value={bulkTop}
-                onChange={(e) => setBulkTop(e.target.value)}
-                rows={3}
-                className="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-                placeholder="Bergamot, Lemon..."
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Heart Notes</label>
-              <textarea
-                value={bulkMid}
-                onChange={(e) => setBulkMid(e.target.value)}
-                rows={3}
-                className="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-rose-500 outline-none resize-none"
-                placeholder="Rose, Jasmine..."
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Base Notes</label>
-              <textarea
-                value={bulkBase}
-                onChange={(e) => setBulkBase(e.target.value)}
-                rows={3}
-                className="w-full p-2.5 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none resize-none"
-                placeholder="Musk, Amber..."
-              />
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+          {(['top','mid','base'] as Layer[]).map(layer => {
+            const color = layer === 'top' ? AMBER : layer === 'mid' ? PURPLE : BLUE;
+            const lockedList = locked[layer];
+            return (
+              <div key={layer}>
+                <label className="flex justify-between items-baseline mb-2.5 font-mono-lab uppercase"
+                  style={{ fontSize: '11px', letterSpacing: '0.12em', color: '#b0aca4' }}>
+                  <span>{layer === 'mid' ? 'Mid' : layer.charAt(0).toUpperCase() + layer.slice(1)} Notes</span>
+                  <span className="font-serif-lab font-light" style={{ fontSize: '20px', color: '#e8e6e0' }}>
+                    {counts[layer]}
+                  </span>
+                </label>
+
+                <input type="range" min="1" max="10" value={counts[layer]}
+                  onChange={e => {
+                    const v = parseInt(e.target.value);
+                    setCounts({ ...counts, [layer]: v });
+                    // trim locked if exceeds
+                    if (lockedList.length > v) setLocked({ ...locked, [layer]: lockedList.slice(0, v) });
+                  }}
+                  className={`lab-slider ${layer === 'mid' ? 'mid' : layer === 'base' ? 'base' : ''} mb-3`}
+                  style={{ ['--pct' as any]: sliderPct(counts[layer]) }} />
+
+                <label
+                  onClick={() => setIncludeSynth({ ...includeSynth, [layer]: !includeSynth[layer] })}
+                  className="flex items-center gap-2 cursor-pointer rounded-lg px-3 py-1.5 mb-2 transition"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="relative rounded-full transition-colors"
+                    style={{ width: 28, height: 15, background: includeSynth[layer] ? `${color}40` : 'rgba(255,255,255,0.1)' }}>
+                    <div className="absolute rounded-full transition-transform"
+                      style={{ top: 2, left: 2, width: 11, height: 11,
+                        background: includeSynth[layer] ? color : '#7a7872',
+                        transform: includeSynth[layer] ? 'translateX(13px)' : 'translateX(0)' }}></div>
+                  </div>
+                  <span className="font-mono-lab uppercase" style={{ fontSize: '10px', letterSpacing: '0.08em', color: '#7a7872' }}>
+                    + Sintetis &amp; Unik
+                  </span>
+                </label>
+
+                {/* Lock notes button */}
+                <button onClick={() => setPickerOpen(layer)}
+                  className="w-full flex items-center justify-between px-3 py-2 rounded-lg font-mono-lab uppercase transition"
+                  style={{ fontSize: 10, letterSpacing: '0.08em',
+                    background: lockedList.length > 0 ? `${color}15` : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${lockedList.length > 0 ? `${color}60` : 'rgba(255,255,255,0.07)'}`,
+                    color: lockedList.length > 0 ? color : '#7a7872', cursor: 'pointer' }}>
+                  <span className="flex items-center gap-1.5">
+                    <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+                      <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                      <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.4"/>
+                    </svg>
+                    Pilih Manual
+                  </span>
+                  <span>{lockedList.length}/{counts[layer]}</span>
+                </button>
+
+                {/* Locked notes chips */}
+                {lockedList.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {lockedList.map((n, i) => (
+                      <span key={i}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs"
+                        style={{ background: `${color}20`, color: color, border: `1px solid ${color}40` }}>
+                        {n.name}
+                        <button onClick={() => toggleLock(layer, n)}
+                          style={{ background: 'none', border: 'none', color, cursor: 'pointer', padding: 0, fontSize: 12, lineHeight: 1 }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button onClick={handleGenerate}
+          className="block mx-auto px-8 py-3.5 rounded-full font-mono-lab uppercase transition-all hover:-translate-y-px"
+          style={{ fontSize: '12px', letterSpacing: '0.14em',
+            background: 'linear-gradient(135deg, rgba(200,150,50,0.12), rgba(160,100,220,0.08))',
+            border: '1px solid rgba(200,150,60,0.4)', color: '#e8e6e0', cursor: 'pointer' }}>
+          ✦ &nbsp; Putar Roda Aroma
+        </button>
+      </div>
+
+      {/* Recipe + AI + Upload — sama seperti sebelumnya */}
+      {recipe && (
+        <div className="animate-fade-in">
+          <div className="text-center pt-9 pb-7">
+            <h2 className="font-serif-lab font-light"
+              style={{ fontSize: 'clamp(28px, 5vw, 44px)', letterSpacing: '0.06em', color: '#e8e6e0' }}>
+              {recipe.name}
+            </h2>
           </div>
-          <button
-            onClick={handleBulkInput}
-            disabled={!bulkTop.trim() && !bulkMid.trim() && !bulkBase.trim()}
-            className="mt-4 px-4 py-2 bg-slate-200 text-slate-800 font-medium text-sm rounded-lg hover:bg-slate-300 disabled:opacity-50 transition-colors w-full"
-          >
-            Ekstrak & Input Notes
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-6">
+            <NotesCard title="Top Notes"   items={recipe.top}  color={AMBER}  locked={locked.top}/>
+            <NotesCard title="Heart Notes" items={recipe.mid}  color={PURPLE} locked={locked.mid}/>
+            <NotesCard title="Base Notes"  items={recipe.base} color={BLUE}   locked={locked.base}/>
+          </div>
+
+          {/* Copy Blueprint */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => {
+                const blueprint =
+                  `Perfume Blueprint\n` +
+                  `Top Note : ${recipe.top.map(n => n.name).join(', ')}\n` +
+                  `Mid/Heart Note : ${recipe.mid.map(n => n.name).join(', ')}\n` +
+                  `Base Note : ${recipe.base.map(n => n.name).join(', ')}`;
+                copyToClipboard(blueprint, 'Blueprint disalin!');
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono-lab uppercase transition hover:-translate-y-px"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.12em',
+                background: 'rgba(255,255,255,0.04)',
+                border: '1px solid rgba(255,255,255,0.14)',
+                color: '#b0aca4',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="4" y="4" width="9" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.4"/>
+                <path d="M3 11V3a1 1 0 011-1h7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              </svg>
+              Salin Blueprint
+            </button>
+          </div>
+
+          <div className="flex justify-center pt-5 pb-2">
+            <button onClick={analyzePerfume} disabled={aiLoading}
+              className="flex items-center gap-2.5 px-7 py-3 rounded-xl font-mono-lab uppercase transition-all disabled:opacity-50"
+              style={{ fontSize: '11px', letterSpacing: '0.12em',
+                background: 'linear-gradient(135deg, rgba(120,60,200,0.15), rgba(80,120,220,0.1))',
+                border: '1px solid rgba(140,80,220,0.4)', color: '#e8e6e0',
+                cursor: aiLoading ? 'not-allowed' : 'pointer' }}>
+              {aiLoading
+                ? <div className="w-4 h-4 rounded-full spin-lab" style={{ border: '2px solid rgba(255,255,255,0.15)', borderTopColor: PURPLE }}></div>
+                : <span className="inline-flex items-center justify-center rounded-md text-white font-bold"
+                    style={{ width: 20, height: 20, fontSize: 9, background: `linear-gradient(135deg, ${PURPLE}, ${BLUE})` }}>AI</span>}
+              {aiLoading ? 'Menganalisis...' : 'Bedah Aroma dengan AI'}
+            </button>
+          </div>
+
+          {errorMsg && <p className="text-center mt-3 font-mono-lab" style={{ fontSize: 12, color: 'oklch(70% 0.18 25)' }}>{errorMsg}</p>}
+
+          {aiResult && (
+            <div className="animate-fade-in mt-4">
+              <Divider label="Analisis AI" />
+              <div className="panel-lab p-7">
+                <div className="ai-content" style={{ color: '#b0aca4', fontSize: 14, lineHeight: 1.75 }}
+                  dangerouslySetInnerHTML={{ __html: aiResult }} />
+              </div>
+
+              {promptText && (
+                <>
+                  <Divider label="Prompt Visualisasi" />
+                  <div className="panel-lab p-6">
+                    <div className="flex flex-col md:flex-row gap-4 items-start">
+                      <div className="flex-1 rounded-lg px-4 py-3.5 font-mono-lab"
+                        style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)',
+                          fontSize: 11, lineHeight: 1.65, color: '#b0aca4', minHeight: 90, wordBreak: 'break-word' }}>
+                        {promptText}
+                      </div>
+                      <button onClick={() => copyToClipboard(promptText, 'Prompt disalin!')}
+                        className="px-4 py-2.5 rounded-lg font-mono-lab uppercase whitespace-nowrap"
+                        style={{ fontSize: 10, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid rgba(255,255,255,0.14)', color: '#b0aca4', cursor: 'pointer' }}>
+                        Salin Prompt
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <Divider label="Simpan ke Galeri" />
+              <div className="panel-lab p-7 text-center">
+                <h3 className="font-serif-lab font-light mb-1.5" style={{ fontSize: 24 }}>Simpan Karya ke Galeri</h3>
+                <p className="font-mono-lab mb-5" style={{ fontSize: 12, color: '#7a7872' }}>
+                  Pilih gambar moodboard Anda dan simpan ke arsip.
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+                  <label className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-mono-lab uppercase cursor-pointer"
+                    style={{ fontSize: 10, letterSpacing: '0.1em', background: 'rgba(255,255,255,0.04)',
+                      border: '1px solid rgba(255,255,255,0.14)', color: '#b0aca4' }}>
+                    Choose File
+                    <input type="file" accept="image/*" onChange={e => setUploadFile(e.target.files?.[0] || null)} style={{ display: 'none' }}/>
+                  </label>
+                  <span className="font-mono-lab" style={{ fontSize: 10, color: '#7a7872' }}>
+                    {uploadFile ? uploadFile.name : 'No file chosen'}
+                  </span>
+                </div>
+                <button onClick={handleUpload} disabled={!uploadFile}
+                  className="px-8 py-3 rounded-lg font-mono-lab uppercase disabled:opacity-40"
+                  style={{ fontSize: 11, letterSpacing: '0.12em',
+                    background: 'linear-gradient(135deg, rgba(50,100,200,0.15), rgba(80,60,180,0.1))',
+                    border: '1px solid rgba(60,130,220,0.4)', color: '#e8e6e0',
+                    cursor: uploadFile ? 'pointer' : 'not-allowed' }}>
+                  Unggah Sekarang
+                </button>
+                {uploadStatus && <p className="mt-3 font-mono-lab" style={{ fontSize: 11, color: '#b0aca4' }}>{uploadStatus}</p>}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Note Picker Modal */}
+      {pickerOpen && (
+        <NotePicker
+          layer={pickerOpen}
+          maxCount={counts[pickerOpen]}
+          locked={locked[pickerOpen]}
+          includeSynth={includeSynth[pickerOpen]}
+          onToggle={(note) => toggleLock(pickerOpen, note)}
+          onClear={() => clearLocks(pickerOpen)}
+          onClose={() => setPickerOpen(null)}
+          onAddCustom={(name) => addCustomNote(pickerOpen, name)}
+        />
+      )}
+
+      <style jsx global>{`
+        .ai-content h1, .ai-content h2, .ai-content h3 {
+          font-family: 'Cormorant Garamond', Georgia, serif;
+          color: #e8e6e0; margin-top: 20px; margin-bottom: 8px; font-weight: 400;
+        }
+        .ai-content h3 { font-size: 18px; }
+        .ai-content p  { margin-bottom: 12px; }
+        .ai-content strong { color: #e8e6e0; font-weight: 500; }
+      `}</style>
+    </main>
+  );
+}
+
+// ─────────── NotesCard ───────────
+function NotesCard({ title, items, color, locked }: {
+  title: string; items: Note[]; color: string; locked: Note[];
+}) {
+  const lockedNames = new Set(locked.map(n => n.name));
+  return (
+    <div className="rounded-xl p-4 relative overflow-hidden"
+      style={{ background: '#181c22', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="absolute top-0 left-0 right-0 h-0.5"
+        style={{ background: `linear-gradient(90deg, transparent, ${color}, transparent)` }}></div>
+      <div className="flex items-center gap-2 mb-3 pb-2.5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+        <div className="w-2.5 h-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 10px ${color}` }}></div>
+        <span className="font-mono-lab uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color }}>{title}</span>
+      </div>
+      <ul className="space-y-1.5">
+        {items.map((n, i) => {
+          const isLocked = lockedNames.has(n.name);
+          return (
+            <li key={i} className="flex justify-between items-baseline py-1.5"
+              style={{ fontSize: 13, color: '#e8e6e0',
+                borderBottom: i < items.length - 1 ? '1px solid rgba(255,255,255,0.03)' : 'none' }}>
+              <span className="flex items-center gap-1.5">
+                {isLocked && (
+                  <svg width="9" height="9" viewBox="0 0 16 16" fill="none" style={{ color }}>
+                    <rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6"/>
+                    <path d="M5 7V5a3 3 0 016 0v2" stroke="currentColor" strokeWidth="1.6"/>
+                  </svg>
+                )}
+                {n.name}
+              </span>
+              <span className="font-mono-lab uppercase" style={{ fontSize: 9, color: '#7a7872' }}>{n.cat}</span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function Divider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-4 my-7 font-mono-lab uppercase"
+      style={{ fontSize: 9, letterSpacing: '0.16em', color: '#7a7872' }}>
+      <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+      {label}
+      <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+    </div>
+  );
+}
+
+// ─────────── Note Picker Modal (UPDATED) ───────────
+function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, onClose, onAddCustom }: {
+  layer: Layer; maxCount: number; locked: Note[]; includeSynth: boolean;
+  onToggle: (note: Note) => void; onClear: () => void; onClose: () => void;
+  onAddCustom: (name: string) => void;
+}) {
+  const [search, setSearch] = useState('');
+  const [customInput, setCustomInput] = useState('');
+  const color = layer === 'top' ? AMBER : layer === 'mid' ? PURPLE : BLUE;
+  const lockedNames = useMemo(() => new Set(locked.map(n => n.name)), [locked]);
+
+  // Fixed: filter by layer instead of using FULL_DATABASE[layer]
+  const allNotes: Note[] = useMemo(() => {
+    return FULL_DATABASE.filter(n => {
+      if (!includeSynth && (n.cat === 'Synth/Weird' || n.cat === 'Beverage')) return false;
+      return n.layers.includes(layer);
+    });
+  }, [layer, includeSynth]);
+
+  // group by category
+  const grouped = useMemo(() => {
+    const filtered = search
+      ? allNotes.filter(n => n.name.toLowerCase().includes(search.toLowerCase()))
+      : allNotes;
+    const map: Record<string, Note[]> = {};
+    filtered.forEach(n => {
+      if (!map[n.cat]) map[n.cat] = [];
+      map[n.cat].push(n);
+    });
+    return map;
+  }, [allNotes, search]);
+
+  const handleAddCustom = () => {
+    const name = customInput.trim();
+    if (!name) return;
+    if (locked.length >= maxCount) return; // already full
+    onAddCustom(name);
+    setCustomInput('');
+  };
+
+  return (
+    <div onClick={onClose}
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      style={{ background: 'rgba(6,7,9,0.94)', backdropFilter: 'blur(8px)' }}>
+      <div onClick={e => e.stopPropagation()}
+        className="panel-lab w-full max-w-3xl max-h-[85vh] flex flex-col"
+        style={{ background: '#111318' }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-2 h-2 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }}></div>
+              <span className="font-mono-lab uppercase" style={{ fontSize: 10, letterSpacing: '0.16em', color }}>
+                Pilih {layer === 'top' ? 'Top' : layer === 'mid' ? 'Mid' : 'Base'} Notes
+              </span>
+            </div>
+            <p className="font-mono-lab" style={{ fontSize: 11, color: '#7a7872' }}>
+              {locked.length} dari {maxCount} terkunci · sisanya akan dirandom
+            </p>
+          </div>
+          <button onClick={onClose}
+            className="w-9 h-9 rounded-full flex items-center justify-center"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.14)', color: '#b0aca4', cursor: 'pointer' }}>
+            ✕
           </button>
         </div>
 
-        <h2 className="text-xl font-bold text-slate-800 mb-4 border-b pb-3">Piramida Olfaktori</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Top Notes */}
-              <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-                <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                  <Wind className="w-4 h-4 text-blue-500" />
-                  Top Notes
-                </h3>
-                <div className="flex gap-2 mb-3">
-                  <input 
-                    type="text" 
-                    value={currentTop}
-                    onChange={(e) => setCurrentTop(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addNote('top')}
-                    placeholder="Tambah note..." 
-                    className="w-full p-2 text-sm border border-blue-200 rounded-md focus:ring-2 focus:ring-blue-400 outline-none"
-                  />
-                  <button onClick={() => addNote('top')} className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {topNotes.map((note, i) => (
-                    <span key={i} className="inline-flex items-center text-xs bg-white border border-blue-200 text-blue-800 px-2 py-1 rounded-full">
-                      {note}
-                      <button onClick={() => removeNote('top', i)} className="ml-1 text-blue-400 hover:text-blue-600">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Middle Notes */}
-              <div className="bg-rose-50/50 p-4 rounded-xl border border-rose-100">
-                <h3 className="font-semibold text-rose-900 mb-3 flex items-center gap-2">
-                  <Droplets className="w-4 h-4 text-rose-500" />
-                  Heart Notes
-                </h3>
-                <div className="flex gap-2 mb-3">
-                  <input 
-                    type="text" 
-                    value={currentMid}
-                    onChange={(e) => setCurrentMid(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addNote('mid')}
-                    placeholder="Tambah note..." 
-                    className="w-full p-2 text-sm border border-rose-200 rounded-md focus:ring-2 focus:ring-rose-400 outline-none"
-                  />
-                  <button onClick={() => addNote('mid')} className="p-2 bg-rose-600 text-white rounded-md hover:bg-rose-700">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {midNotes.map((note, i) => (
-                    <span key={i} className="inline-flex items-center text-xs bg-white border border-rose-200 text-rose-800 px-2 py-1 rounded-full">
-                      {note}
-                      <button onClick={() => removeNote('mid', i)} className="ml-1 text-rose-400 hover:text-rose-600">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Base Notes */}
-              <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-                <h3 className="font-semibold text-amber-900 mb-3 flex items-center gap-2">
-                  <Mountain className="w-4 h-4 text-amber-500" />
-                  Base Notes
-                </h3>
-                <div className="flex gap-2 mb-3">
-                  <input 
-                    type="text" 
-                    value={currentBase}
-                    onChange={(e) => setCurrentBase(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addNote('base')}
-                    placeholder="Tambah note..." 
-                    className="w-full p-2 text-sm border border-amber-200 rounded-md focus:ring-2 focus:ring-amber-400 outline-none"
-                  />
-                  <button onClick={() => addNote('base')} className="p-2 bg-amber-600 text-white rounded-md hover:bg-amber-700">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {baseNotes.map((note, i) => (
-                    <span key={i} className="inline-flex items-center text-xs bg-white border border-amber-200 text-amber-800 px-2 py-1 rounded-full">
-                      {note}
-                      <button onClick={() => removeNote('base', i)} className="ml-1 text-amber-400 hover:text-amber-600">
-                        <X className="w-3 h-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Custom Prompt */}
-            <div className="mt-8 pt-6 border-t">
-              <label className="block text-sm font-semibold text-slate-700 mb-1">Custom Arahan AI (Opsional)</label>
-              <textarea 
-                value={customPrompt}
-                onChange={(e) => setCustomPrompt(e.target.value)}
-                placeholder="Misal: Fokus pada deskripsi wangi woody-nya, atau gunakan gaya bahasa yang lebih puitis..." 
-                className="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-slate-500 outline-none resize-none h-20 text-sm"
-              />
-            </div>
-
-            <div className="mt-8 flex gap-3">
-              <button 
-                onClick={handleAnalyze}
-                disabled={isAnalyzing}
-                className="flex-1 bg-slate-900 text-white font-bold py-3.5 px-6 rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sedang Meracik...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-5 h-5" />
-                    Mulai Audit Parfum
-                  </>
-                )}
-              </button>
-              <button 
-                onClick={handleReset}
-                className="p-3.5 border border-slate-300 text-slate-600 rounded-xl hover:bg-slate-50 transition-colors"
-                title="Reset Form"
-              >
-                <RefreshCcw className="w-5 h-5" />
-              </button>
-            </div>
-
-            {error && (
-              <div className="mt-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2 text-sm border border-red-200">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg flex items-center gap-2 text-sm border border-green-200">
-                <Sparkles className="w-4 h-4 flex-shrink-0" />
-                {success}
-              </div>
-            )}
+        {/* Search + Custom Input */}
+        <div className="p-5 pb-3 space-y-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+          <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Cari note (mis. Bergamot, Rose, Oud...)"
+            className="w-full px-4 py-2.5 rounded-lg outline-none"
+            style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)',
+              color: '#e8e6e0', fontSize: 13 }}/>
+          
+          {/* Custom note input */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={customInput}
+              onChange={e => setCustomInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddCustom(); }}
+              placeholder="Atau tulis note baru (mis. andaliman)..."
+              className="flex-1 px-4 py-2.5 rounded-lg outline-none"
+              style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${color}40`,
+                color: '#e8e6e0', fontSize: 13 }}
+            />
+            <button
+              onClick={handleAddCustom}
+              disabled={locked.length >= maxCount || !customInput.trim()}
+              className="px-4 py-2.5 rounded-lg font-mono-lab uppercase transition"
+              style={{
+                fontSize: 10,
+                letterSpacing: '0.1em',
+                background: locked.length >= maxCount ? 'rgba(255,255,255,0.05)' : `${color}20`,
+                border: `1px solid ${color}60`,
+                color: locked.length >= maxCount ? '#7a7872' : color,
+                cursor: locked.length >= maxCount || !customInput.trim() ? 'not-allowed' : 'pointer',
+                opacity: locked.length >= maxCount || !customInput.trim() ? 0.5 : 1,
+              }}
+            >
+              + Tambah
+            </button>
           </div>
+
+          {locked.length > 0 && (
+            <button onClick={onClear}
+              className="font-mono-lab uppercase"
+              style={{ fontSize: 10, letterSpacing: '0.1em', color: '#7a7872',
+                background: 'none', border: 'none', cursor: 'pointer' }}>
+              ↻ Hapus semua kunci
+            </button>
+          )}
         </div>
 
-        {/* Right Column: Results & Visualization */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Moodboard Panel */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center justify-center min-h-[300px]">
-            <h2 className="text-xl font-bold text-slate-800 mb-4 self-start w-full border-b pb-3 flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-slate-500" />
-              Visual Moodboard
-            </h2>
-            
-            {imageUrl ? (
-              <div className="w-full relative aspect-square rounded-xl overflow-hidden border border-slate-200 shadow-inner">
-                <Image 
-                  src={imageUrl} 
-                  alt="Perfume Moodboard" 
-                  fill
-                  className="object-cover"
-                />
+        {/* Notes List */}
+        <div className="flex-1 overflow-y-auto p-5">
+          {Object.keys(grouped).length === 0 && (
+            <p className="text-center font-mono-lab py-10" style={{ fontSize: 11, color: '#7a7872' }}>
+              Tidak ada hasil untuk "{search}"
+            </p>
+          )}
+          {Object.entries(grouped).map(([cat, notes]) => (
+            <div key={cat} className="mb-5">
+              <div className="font-mono-lab uppercase mb-2" style={{ fontSize: 9, letterSpacing: '0.14em', color: '#7a7872' }}>
+                {cat} <span style={{ color: '#4a4842' }}>({notes.length})</span>
               </div>
-            ) : (
-              <div className="w-full aspect-square bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
-                <ImageIcon className="w-12 h-12 mb-3 opacity-20" />
-                <p className="text-sm">Moodboard visual akan muncul di sini setelah Anda melakukan analisis racikan.</p>
+              <div className="flex flex-wrap gap-1.5">
+                {notes.map((n) => {
+                  const isLocked = lockedNames.has(n.name);
+                  const isFull = !isLocked && locked.length >= maxCount;
+                  return (
+                    <button key={n.name} onClick={() => onToggle(n)} disabled={isFull}
+                      className="px-2.5 py-1 rounded-md text-xs transition"
+                      style={{
+                        background: isLocked ? `${color}25` : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${isLocked ? `${color}80` : 'rgba(255,255,255,0.08)'}`,
+                        color: isLocked ? color : isFull ? '#4a4842' : '#b0aca4',
+                        cursor: isFull ? 'not-allowed' : 'pointer',
+                        opacity: isFull ? 0.5 : 1,
+                      }}>
+                      {isLocked && '🔒 '}{n.name}
+                    </button>
+                  );
+                })}
               </div>
-            )}
-          </div>
-
-          {/* Analysis Report Panel */}
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div className="flex items-center justify-between mb-4 border-b pb-3">
-              <h2 className="text-xl font-bold text-slate-800">Laporan Auditor</h2>
-              {analysisResult && (
-                <button 
-                  onClick={handleSave}
-                  disabled={isSaving}
-                  className="bg-emerald-600 text-white p-2 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 text-sm font-medium flex items-center gap-1.5"
-                >
-                  <Save className="w-4 h-4" />
-                  {isSaving ? 'Menyimpan...' : 'Simpan'}
-                </button>
-              )}
             </div>
-            
-            {analysisResult ? (
-              <div className="prose prose-slate prose-sm max-w-none">
-                <div 
-                  className="whitespace-pre-wrap text-slate-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ __html: analysisResult.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
-                />
-              </div>
-            ) : (
-              <div className="text-center text-slate-400 py-12">
-                <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p className="text-sm">Silakan isi formulir dan klik "Mulai Audit" untuk melihat bedah aroma.</p>
-              </div>
-            )}
-          </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div className="p-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <button onClick={onClose}
+            className="w-full py-3 rounded-lg font-mono-lab uppercase"
+            style={{ fontSize: 11, letterSpacing: '0.12em',
+              background: `${color}20`, border: `1px solid ${color}60`, color: '#e8e6e0', cursor: 'pointer' }}>
+            ✓ Selesai ({locked.length}/{maxCount})
+          </button>
         </div>
       </div>
     </div>
