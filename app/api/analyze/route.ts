@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const midStr = midNotes.join(', ');
     const baseStr = baseNotes.join(', ');
 
-    // Prompt lengkap (Diperbarui dengan permintaan tag <h2> untuk Nama)
+    // Prompt lengkap (Diperbarui dengan instruksi Nama 1-2 kata yang kreatif dan mewah)
     const prompt = `Sebagai seorang Kritikus Master Perfumer yang eksentrik, sangat analitis, dan puitis, saya baru saja meracik parfum acak dengan komposisi berikut:
     Top Notes: ${topStr}
     Heart Notes: ${midStr}
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     
     Berikan ulasan mendalam bergaya arsitektural dan puitis. Gunakan bahasa Indonesia elegan. Tulis dalam format HTML (hanya h2, h3, p, ul, li, strong) tanpa \`\`\`html.
     Struktur wajib:
-    <h2>[Satu Nama Parfum Estetis, Maksimal 3 Kata]</h2>
+    <h2>[Satu atau Maksimal Dua Kata Saja. Ciptakan nama parfum yang artistik, mewah, dan puitis. Gunakan kosakata elegan dari bahasa Prancis, Latin, Arab, Italia, atau Inggris (contoh: Ombre Nomade, Oud Maracuja, Bois D'Argent, Aqua Universalis). DILARANG KERAS hanya sekadar menggabungkan nama-nama notes. Berpikirlah kreatif untuk menangkap esensi jiwa dari racikan tersebut!]</h2>
     <Paragraf pembuka dramatis dan puitis (2-3 kalimat). Gunakan analogi yang LAHIR DARI KARAKTER note dominan parfum ini — bukan template tetap. Ranah analogi yang bisa dipilih: kuliner (selain kopi V60), musik, sinematografi, arsitektur, sastra, alam, tekstil, ritual budaya, atau benda sehari-hari yang spesifik. Contoh logika pemilihan: note resin/incense → liturgi atau katedral tua; note aquatic → ombak pertama saat fajar; note gourmand → pastry hangat dari oven Wina atau kunafa yang baru pecah; note leather → sarung tangan kulit di lemari kakek; note green/herbal → pisau membelah daun mint segar; note oud/smoky → bara terakhir di tungku monastik; note citrus → siang yang memantul di marmer piazza Italia. JANGAN pernah memulai dengan analogi kopi V60. Variasikan setiap kali — jika notes-nya kompleks, gabungkan dua ranah analogi yang tak terduga.>
     <h3>1. Narasi Aroma</h3><p>...</p>
     <h3>2. Deskripsi Aroma per Layer</h3><ul>...</ul>
@@ -83,18 +83,17 @@ export async function POST(request: Request) {
 
 The final bottle must feel like a sculpted object born from THIS specific note combination — a viewer should sense both the scent family AND the aesthetic worldview from the bottle alone. A radical avant-garde scent should NOT come in a Tom Ford box; a folkloric Romanian-Orthodox scent should NOT come in a Le Labo cylinder.
 
-COMPOSITION RULES — DO NOT default to full-face portraits. Randomly pick ONE persona archetype below:
-- HEADLESS HALF-BODY: torso, hands, clothing details, cropped at the chin or shoulders
-- BACK-VIEW: subject walking away, facing a window, or shot from behind
-- SILHOUETTE: backlit shape with no facial features, deep shadow profile
-- HANDS & ACCESSORIES ONLY: extreme close-up of fingers, rings, watches, fabric folds, a glass being held
-- SIDE PROFILE in low-key chiaroscuro lighting, eyes obscured by shadow
-- NO-HUMAN VARIANT: replace the persona quadrant entirely with an environment, architecture, ritual object, or natural scene that DIRECTLY echoes the fragrance character. Derive the place from the notes themselves — do NOT default to a fixed luxury library. Illustrative directions (not exhaustive, feel free to invent beyond these): aquatic/marine notes → tide pool, foggy marina, glasshouse condensation, indoor swimming hall at dusk; gourmand → patisserie counter, candied chestnut market, traditional kunafa workshop; oriental/incense/resin → Orthodox cathedral interior, hammam steam, candle-lit shrine, Moroccan riad courtyard; smoky/oud/leather → cabin fireplace, monastery scriptorium, equestrian stable, antique tannery; green/herbal/aromatic → wet greenhouse, dewy mint field, alpine herb garden at dawn; floral fresh → English country garden, dewy peony farm, sunlit conservatory; citrus aldehydic → Mediterranean piazza at noon, lemon grove on the Amalfi coast, sunlit Sicilian balcony; powdery/iris/musky → vintage powder room, satin boudoir, dressing table with antique perfume bottles. The environment must feel like it was BORN from these specific notes — let the ingredients dictate the geography.
+COMPOSITION RULES — Randomly pick ONE persona/lifestyle archetype below to ensure maximum variety (DO NOT just use back-views!):
+- EDITORIAL FRONT-FACING PORTRAIT: Subject looking directly at the camera or slightly off-angle, high-fashion editorial lighting (Vogue style), conveying the exact mood of the perfume (e.g., seductive, stoic, fresh, mysterious).
+- DRAMATIC HALF-BODY & DETAILS: Focus on the torso, hands, clothing textures (silk, leather, linen), or extreme close-up of a jawline/lips/neck with dramatic chiaroscuro lighting.
+- MYSTERIOUS SILHOUETTE / BACK-VIEW: Subject looking out toward a vast landscape, ocean, or city skyline, or a completely backlit profile.
+- LUXURY LIFESTYLE / VEHICLES (NO-HUMAN): Replace the persona entirely with a high-end object or vehicle that matches the vibe perfectly. Examples: a sleek luxury yacht deck or speedboat (for aquatic/marine); a classic vintage sports car interior or leather seats (for leather/smoky); a private jet cabin, a grand piano, crystal chandelier, or minimalist architectural villa (for opulent/modern scents).
+- ATMOSPHERIC ENVIRONMENT (NO-HUMAN): A purely scenic shot born from the notes. Examples: patisserie counter (gourmand); Orthodox cathedral or Moroccan riad (incense/oriental); dewy mint field (green); Amalfi coast balcony (citrus).
 
 Distribute these four content types organically across the quadrants (do NOT fix positions):
 1. Ingredient macro from top/heart notes (${topStr}, ${midStr}) — fruit halved with water droplets, spices on aged wood, dried botanicals on linen, citrus flesh glistening, raw petals
-2. Atmospheric environment that organically reflects the scent's character — let the specific notes dictate the place. A smoky oud doesn't need a casino. A fresh aquatic doesn't need an opera. A green herbal blend doesn't belong in a leather lounge. Invent the most truthful setting for THIS exact note combination, drawing from any cultural, natural, architectural, or ritual context worldwide.
-3. Persona quadrant (per archetype chosen above) — OR architectural substitute if NO-HUMAN variant
+2. Atmospheric environment or Luxury Lifestyle object that organically reflects the scent's character (as chosen above).
+3. Persona quadrant (Editorial portrait, body details, or silhouette) — OR an additional architectural/lifestyle substitute if a completely NO-HUMAN variant is chosen.
 4. Base-note material macro (${baseStr}) — oud bark, dark leather grain, cigar bundle, raw resin pearls, cracked vetiver root, smoldering wood
 
 Lighting is consistently cinematic, low-key, seductive, and color-graded to the scent profile (amber-warm for orientals; cool-violet for fresh; deep-burgundy for opulent; mint-silver for aquatic). Shallow depth of field on every quadrant. The four quadrants blend smoothly at their seams without visible borders.</blockquote>`;
