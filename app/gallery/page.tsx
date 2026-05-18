@@ -125,7 +125,7 @@ export default function GalleryPage() {
           <div onClick={e => e.stopPropagation()}
             className="flex flex-col md:flex-row gap-8 max-w-5xl w-full max-h-[90vh]">
             <div className="relative rounded-2xl overflow-hidden flex-shrink-0"
-              style={{ width: 'min(420px, 48vw)', aspectRatio: '9 / 14',
+              style={{ width: 'min(420px, 48vw)', aspectRatio: '9 / 16',
                 border: '1px solid rgba(255,255,255,0.14)',
                 boxShadow: '0 32px 80px rgba(0,0,0,0.7)' }}>
               <Image src={perfumes[activeIdx].image_url} alt={perfumes[activeIdx].name} fill className="object-cover" sizes="420px"/>
