@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const midStr = midNotes.join(', ');
     const baseStr = baseNotes.join(', ');
 
-    // Prompt lengkap (Diperbarui dengan instruksi Nama 1-2 kata yang kreatif dan mewah)
+    // Prompt lengkap (Diperkaya dengan instruksi nama yang lebih ketat & referensi moodboard baru)
     const prompt = `Sebagai seorang Kritikus Master Perfumer yang eksentrik, sangat analitis, dan puitis, saya baru saja meracik parfum acak dengan komposisi berikut:
     Top Notes: ${topStr}
     Heart Notes: ${midStr}
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     
     Berikan ulasan mendalam bergaya arsitektural dan puitis. Gunakan bahasa Indonesia elegan. Tulis dalam format HTML (hanya h2, h3, p, ul, li, strong) tanpa \`\`\`html.
     Struktur wajib:
-    <h2>[Satu atau Maksimal Dua Kata Saja. Ciptakan nama parfum yang artistik, mewah, dan puitis. Gunakan kosakata elegan dari bahasa Prancis, Latin, Arab, Italia, atau Inggris (contoh: Ombre Nomade, Oud Maracuja, Bois D'Argent, Aqua Universalis). DILARANG KERAS hanya sekadar menggabungkan nama-nama notes. Berpikirlah kreatif untuk menangkap esensi jiwa dari racikan tersebut!]</h2>
+    <h2>[WAJIB 1 ATAU MAKSIMAL 2 KATA SAJA. Ciptakan nama parfum yang artistik, mewah, dan puitis. Gunakan kosakata elegan dari bahasa Prancis, Latin, Arab, Italia, atau Inggris (contoh: Ombre Nomade, Oud Maracuja, Bois D'Argent). DILARANG KERAS hanya sekadar menggabungkan nama-nama notes. Berpikirlah sangat kreatif untuk menangkap esensi, jiwa, dan vibe dari racikan tersebut ke dalam 1-2 kata yang ikonik!]</h2>
     <Paragraf pembuka dramatis dan puitis (2-3 kalimat). Gunakan analogi yang LAHIR DARI KARAKTER note dominan parfum ini — bukan template tetap. Ranah analogi yang bisa dipilih: kuliner (selain kopi V60), musik, sinematografi, arsitektur, sastra, alam, tekstil, ritual budaya, atau benda sehari-hari yang spesifik. Contoh logika pemilihan: note resin/incense → liturgi atau katedral tua; note aquatic → ombak pertama saat fajar; note gourmand → pastry hangat dari oven Wina atau kunafa yang baru pecah; note leather → sarung tangan kulit di lemari kakek; note green/herbal → pisau membelah daun mint segar; note oud/smoky → bara terakhir di tungku monastik; note citrus → siang yang memantul di marmer piazza Italia. JANGAN pernah memulai dengan analogi kopi V60. Variasikan setiap kali — jika notes-nya kompleks, gabungkan dua ranah analogi yang tak terduga.>
     <h3>1. Narasi Aroma</h3><p>...</p>
     <h3>2. Deskripsi Aroma per Layer</h3><ul>...</ul>
@@ -88,10 +88,10 @@ COMPOSITION RULES — Randomly pick ONE persona/lifestyle archetype below to ens
 - DRAMATIC HALF-BODY & DETAILS: Focus on the torso, hands, clothing textures (silk, leather, linen), or extreme close-up of a jawline/lips/neck with dramatic chiaroscuro lighting.
 - MYSTERIOUS SILHOUETTE / BACK-VIEW: Subject looking out toward a vast landscape, ocean, or city skyline, or a completely backlit profile.
 - LUXURY LIFESTYLE / VEHICLES (NO-HUMAN): Replace the persona entirely with a high-end object or vehicle that matches the vibe perfectly. Examples: a sleek luxury yacht deck or speedboat (for aquatic/marine); a classic vintage sports car interior or leather seats (for leather/smoky); a private jet cabin, a grand piano, crystal chandelier, or minimalist architectural villa (for opulent/modern scents).
-- ATMOSPHERIC ENVIRONMENT (NO-HUMAN): A purely scenic shot born from the notes. Examples: patisserie counter (gourmand); Orthodox cathedral or Moroccan riad (incense/oriental); dewy mint field (green); Amalfi coast balcony (citrus).
+- ATMOSPHERIC ENVIRONMENT (NO-HUMAN): A purely scenic shot organically born from the notes. BE HIGHLY CREATIVE! Examples: sailing on the Mediterranean sea, a sunlit Amalfi coast balcony, or fresh fruits/ingredients resting beautifully on warm tropical sand (citrus/aquatic/fruity); a serene Japanese temple or Zen garden (tea/bamboo/woods); a pristine Bali beach (tropical); a moody European street during autumn leaves or heavy winter snow (spicy/leather/warm); a patisserie counter (gourmand); an Orthodox cathedral or Moroccan riad (incense/oriental). Let the specific notes dictate the geography and season!
 
 Distribute these four content types organically across the quadrants (do NOT fix positions):
-1. Ingredient macro from top/heart notes (${topStr}, ${midStr}) — fruit halved with water droplets, spices on aged wood, dried botanicals on linen, citrus flesh glistening, raw petals
+1. Ingredient macro from top/heart notes (${topStr}, ${midStr}) — fruit halved with water droplets, spices on aged wood, dried botanicals on linen, citrus flesh glistening, raw petals, or ingredients creatively arranged on sand/stone.
 2. Atmospheric environment or Luxury Lifestyle object that organically reflects the scent's character (as chosen above).
 3. Persona quadrant (Editorial portrait, body details, or silhouette) — OR an additional architectural/lifestyle substitute if a completely NO-HUMAN variant is chosen.
 4. Base-note material macro (${baseStr}) — oud bark, dark leather grain, cigar bundle, raw resin pearls, cracked vetiver root, smoldering wood
