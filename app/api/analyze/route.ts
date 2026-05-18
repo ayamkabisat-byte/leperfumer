@@ -1,4 +1,3 @@
-// app/api/analyze/route.ts
 import { NextResponse } from 'next/server';
 
 /**
@@ -44,14 +43,15 @@ export async function POST(request: Request) {
     const midStr = midNotes.join(', ');
     const baseStr = baseNotes.join(', ');
 
-    // Prompt lengkap (sama dengan di kode React asli)
+    // Prompt lengkap (Diperbarui dengan permintaan tag <h2> untuk Nama)
     const prompt = `Sebagai seorang Kritikus Master Perfumer yang eksentrik, sangat analitis, dan puitis, saya baru saja meracik parfum acak dengan komposisi berikut:
     Top Notes: ${topStr}
     Heart Notes: ${midStr}
     Base Notes: ${baseStr}
     
-    Berikan ulasan mendalam bergaya arsitektural dan puitis. Gunakan bahasa Indonesia elegan. Tulis dalam format HTML (hanya h3, p, ul, li, strong) tanpa \`\`\`html.
+    Berikan ulasan mendalam bergaya arsitektural dan puitis. Gunakan bahasa Indonesia elegan. Tulis dalam format HTML (hanya h2, h3, p, ul, li, strong) tanpa \`\`\`html.
     Struktur wajib:
+    <h2>[Satu Nama Parfum Estetis, Maksimal 3 Kata]</h2>
     <Paragraf pembuka dramatis dan puitis (2-3 kalimat). Gunakan analogi yang LAHIR DARI KARAKTER note dominan parfum ini — bukan template tetap. Ranah analogi yang bisa dipilih: kuliner (selain kopi V60), musik, sinematografi, arsitektur, sastra, alam, tekstil, ritual budaya, atau benda sehari-hari yang spesifik. Contoh logika pemilihan: note resin/incense → liturgi atau katedral tua; note aquatic → ombak pertama saat fajar; note gourmand → pastry hangat dari oven Wina atau kunafa yang baru pecah; note leather → sarung tangan kulit di lemari kakek; note green/herbal → pisau membelah daun mint segar; note oud/smoky → bara terakhir di tungku monastik; note citrus → siang yang memantul di marmer piazza Italia. JANGAN pernah memulai dengan analogi kopi V60. Variasikan setiap kali — jika notes-nya kompleks, gabungkan dua ranah analogi yang tak terduga.>
     <h3>1. Narasi Aroma</h3><p>...</p>
     <h3>2. Deskripsi Aroma per Layer</h3><ul>...</ul>
@@ -130,6 +130,12 @@ Lighting is consistently cinematic, low-key, seductive, and color-graded to the 
     // Sanitasi untuk mencegah CSP violation
     html = sanitizeHtml(html);
 
+    // Ekstrak nama AI dari tag <h2>
+    const h2Match = html.match(/<h2>([\s\S]*?)<\/h2>/i);
+    const suggestedName = h2Match ? h2Match[1].trim() : '';
+    // Hapus h2 dari html agar tidak tercetak dua kali di dalam UI hasil analisis
+    html = html.replace(/<h2>[\s\S]*?<\/h2>/i, '');
+
     // Ekstrak prompt moodboard dari blockquote
     const blockquoteMatch = html.match(/<blockquote>([\s\S]*?)<\/blockquote>/i);
     const promptText = blockquoteMatch ? blockquoteMatch[1].trim() : '';
@@ -152,7 +158,8 @@ Lighting is consistently cinematic, low-key, seductive, and color-graded to the 
       '<blockquote class="bg-gray-100 dark:bg-gray-700 p-4 rounded-lg italic border-l-4 border-gray-400 dark:border-gray-500 my-4 text-gray-700 dark:text-gray-200">'
     );
 
-    return NextResponse.json({ html, promptText });
+    // Return nama bersama dengan html dan prompt
+    return NextResponse.json({ name: suggestedName, html, promptText });
   } catch (err: any) {
     console.error('Gemini API error:', err);
     return NextResponse.json(
