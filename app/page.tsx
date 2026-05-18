@@ -26,6 +26,9 @@ export default function GeneratorPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
+  
+  // State untuk menyimpan nama dari AI
+  const [aiName, setAiName] = useState('');
 
   // State untuk Input Bulk (Manual Copy Paste)
   const [bulkTop, setBulkTop] = useState('');
@@ -97,7 +100,7 @@ export default function GeneratorPage() {
   };
 
   const handleGenerate = () => {
-    setAiResult(''); setPromptText(''); setErrorMsg(''); setUploadStatus('');
+    setAiResult(''); setPromptText(''); setErrorMsg(''); setUploadStatus(''); setAiName('');
     setRecipe(getRandomRecipeWithLocks(counts, includeSynth, locked));
   };
 
@@ -117,7 +120,12 @@ export default function GeneratorPage() {
       });
       const data = await res.json();
       if (data.error) { setErrorMsg(data.error); return; }
-      setAiResult(data.html); setPromptText(data.promptText || '');
+      
+      setAiResult(data.html); 
+      setPromptText(data.promptText || '');
+      // Simpan usulan nama dari AI ke state jika tersedia
+      if (data.name) setAiName(data.name);
+
     } catch (err: any) { setErrorMsg(`Gagal memuat AI: ${err.message}`); }
     finally { setAiLoading(false); }
   };
@@ -131,7 +139,8 @@ export default function GeneratorPage() {
     setUploadStatus('Mengunggah...');
     const fd = new FormData();
     fd.append('file', uploadFile);
-    fd.append('name', recipe.name);
+    // Prioritaskan nama buatan AI untuk disimpan, jika tidak ada fallback ke nama random
+    fd.append('name', aiName || recipe.name);
     fd.append('top_notes',  recipe.top.map(n => n.name).join(', '));
     fd.append('mid_notes',  recipe.mid.map(n => n.name).join(', '));
     fd.append('base_notes', recipe.base.map(n => n.name).join(', '));
@@ -241,7 +250,7 @@ export default function GeneratorPage() {
           })}
         </div>
 
-        {/* --- TAMBAHAN: INPUT BULK MANUAL KOMA --- */}
+        {/* INPUT BULK MANUAL KOMA */}
         <div className="mt-8 pt-5 pb-2 mb-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="font-mono-lab uppercase mb-3 flex items-center gap-2" style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#b0aca4' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -289,7 +298,6 @@ export default function GeneratorPage() {
             Ekstrak &amp; Kunci Notes
           </button>
         </div>
-        {/* --- AKHIR TAMBAHAN --- */}
 
         <button onClick={handleGenerate}
           className="block mx-auto px-8 py-3.5 rounded-full font-mono-lab uppercase transition-all hover:-translate-y-px"
@@ -306,7 +314,8 @@ export default function GeneratorPage() {
           <div className="text-center pt-9 pb-7">
             <h2 className="font-serif-lab font-light"
               style={{ fontSize: 'clamp(28px, 5vw, 44px)', letterSpacing: '0.06em', color: '#e8e6e0' }}>
-              {recipe.name}
+              {/* Menampilkan aiName jika ada, jika belum menggunakan default recipe.name */}
+              {aiName || recipe.name}
             </h2>
           </div>
 
