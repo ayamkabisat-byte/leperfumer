@@ -27,6 +27,11 @@ export default function GeneratorPage() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState('');
 
+  // State untuk Input Bulk (Manual Copy Paste)
+  const [bulkTop, setBulkTop] = useState('');
+  const [bulkMid, setBulkMid] = useState('');
+  const [bulkBase, setBulkBase] = useState('');
+
   const sliderPct = (val: number) => `${((val - 1) / 9 * 100).toFixed(1)}%`;
 
   const toggleLock = (layer: Layer, note: Note) => {
@@ -52,6 +57,44 @@ export default function GeneratorPage() {
   };
 
   const clearLocks = (layer: Layer) => setLocked(prev => ({ ...prev, [layer]: [] }));
+
+  // Fungsi untuk memproses teks input manual
+  const handleBulkInput = () => {
+    const newLocked = { ...locked };
+    const newCounts = { ...counts };
+
+    const processLayer = (layer: Layer, text: string) => {
+      if (!text.trim()) return;
+      const names = text.split(/[,&\n]/).map(n => n.trim()).filter(n => n);
+
+      names.forEach(name => {
+        // Cek apakah note sudah ada di array locked agar tidak duplikat
+        if (!newLocked[layer].some(n => n.name.toLowerCase() === name.toLowerCase())) {
+          newLocked[layer] = [...newLocked[layer], { name, cat: 'Custom', layers: [layer] }];
+        }
+      });
+
+      // Otomatis menaikkan batas slider jika notes yang di-paste melebihi jumlah slider saat ini
+      if (newLocked[layer].length > newCounts[layer]) {
+        newCounts[layer] = Math.min(10, newLocked[layer].length); // max 10
+        if (newLocked[layer].length > 10) {
+          newLocked[layer] = newLocked[layer].slice(0, 10);
+        }
+      }
+    };
+
+    processLayer('top', bulkTop);
+    processLayer('mid', bulkMid);
+    processLayer('base', bulkBase);
+
+    setLocked(newLocked);
+    setCounts(newCounts);
+
+    // Reset form bulk
+    setBulkTop('');
+    setBulkMid('');
+    setBulkBase('');
+  };
 
   const handleGenerate = () => {
     setAiResult(''); setPromptText(''); setErrorMsg(''); setUploadStatus('');
@@ -198,6 +241,56 @@ export default function GeneratorPage() {
           })}
         </div>
 
+        {/* --- TAMBAHAN: INPUT BULK MANUAL KOMA --- */}
+        <div className="mt-8 pt-5 pb-2 mb-6" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <div className="font-mono-lab uppercase mb-3 flex items-center gap-2" style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#b0aca4' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+            Input Notes Cepat (Pisahkan dengan koma)
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+            <textarea
+              value={bulkTop}
+              onChange={(e) => setBulkTop(e.target.value)}
+              placeholder="Top (mis: Lemon, Mint)"
+              rows={2}
+              className="w-full px-3 py-2 outline-none rounded-lg font-mono-lab transition-all"
+              style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${bulkTop ? AMBER : 'rgba(255,255,255,0.07)'}`, color: '#e8e6e0', fontSize: 11, resize: 'none' }}
+            />
+            <textarea
+              value={bulkMid}
+              onChange={(e) => setBulkMid(e.target.value)}
+              placeholder="Heart (mis: Rose, Jasmine)"
+              rows={2}
+              className="w-full px-3 py-2 outline-none rounded-lg font-mono-lab transition-all"
+              style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${bulkMid ? PURPLE : 'rgba(255,255,255,0.07)'}`, color: '#e8e6e0', fontSize: 11, resize: 'none' }}
+            />
+            <textarea
+              value={bulkBase}
+              onChange={(e) => setBulkBase(e.target.value)}
+              placeholder="Base (mis: Oud, Musk)"
+              rows={2}
+              className="w-full px-3 py-2 outline-none rounded-lg font-mono-lab transition-all"
+              style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${bulkBase ? BLUE : 'rgba(255,255,255,0.07)'}`, color: '#e8e6e0', fontSize: 11, resize: 'none' }}
+            />
+          </div>
+          <button
+            onClick={handleBulkInput}
+            disabled={!bulkTop.trim() && !bulkMid.trim() && !bulkBase.trim()}
+            className="w-full py-2.5 rounded-lg font-mono-lab uppercase transition hover:-translate-y-px disabled:opacity-50"
+            style={{ 
+              fontSize: 10, letterSpacing: '0.1em', 
+              background: (!bulkTop.trim() && !bulkMid.trim() && !bulkBase.trim()) ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.1)', 
+              border: '1px solid rgba(255,255,255,0.14)', color: '#e8e6e0', cursor: (!bulkTop.trim() && !bulkMid.trim() && !bulkBase.trim()) ? 'not-allowed' : 'pointer' 
+            }}
+          >
+            Ekstrak &amp; Kunci Notes
+          </button>
+        </div>
+        {/* --- AKHIR TAMBAHAN --- */}
+
         <button onClick={handleGenerate}
           className="block mx-auto px-8 py-3.5 rounded-full font-mono-lab uppercase transition-all hover:-translate-y-px"
           style={{ fontSize: '12px', letterSpacing: '0.14em',
@@ -207,7 +300,7 @@ export default function GeneratorPage() {
         </button>
       </div>
 
-      {/* Recipe + AI + Upload — sama seperti sebelumnya */}
+      {/* Recipe + AI + Upload */}
       {recipe && (
         <div className="animate-fade-in">
           <div className="text-center pt-9 pb-7">
@@ -407,7 +500,7 @@ function Divider({ label }: { label: string }) {
   );
 }
 
-// ─────────── Note Picker Modal (UPDATED) ───────────
+// ─────────── Note Picker Modal ───────────
 function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, onClose, onAddCustom }: {
   layer: Layer; maxCount: number; locked: Note[]; includeSynth: boolean;
   onToggle: (note: Note) => void; onClear: () => void; onClose: () => void;
@@ -418,7 +511,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
   const color = layer === 'top' ? AMBER : layer === 'mid' ? PURPLE : BLUE;
   const lockedNames = useMemo(() => new Set(locked.map(n => n.name)), [locked]);
 
-  // Fixed: filter by layer instead of using FULL_DATABASE[layer]
   const allNotes: Note[] = useMemo(() => {
     return FULL_DATABASE.filter(n => {
       if (!includeSynth && (n.cat === 'Synth/Weird' || n.cat === 'Beverage')) return false;
@@ -426,7 +518,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
     });
   }, [layer, includeSynth]);
 
-  // group by category
   const grouped = useMemo(() => {
     const filtered = search
       ? allNotes.filter(n => n.name.toLowerCase().includes(search.toLowerCase()))
@@ -442,7 +533,7 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
   const handleAddCustom = () => {
     const name = customInput.trim();
     if (!name) return;
-    if (locked.length >= maxCount) return; // already full
+    if (locked.length >= maxCount) return; 
     onAddCustom(name);
     setCustomInput('');
   };
@@ -455,7 +546,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
         className="panel-lab w-full max-w-3xl max-h-[85vh] flex flex-col"
         style={{ background: '#111318' }}>
 
-        {/* Header */}
         <div className="flex items-center justify-between p-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -475,7 +565,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
           </button>
         </div>
 
-        {/* Search + Custom Input */}
         <div className="p-5 pb-3 space-y-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Cari note (mis. Bergamot, Rose, Oud...)"
@@ -483,7 +572,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
             style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.07)',
               color: '#e8e6e0', fontSize: 13 }}/>
           
-          {/* Custom note input */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -523,7 +611,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
           )}
         </div>
 
-        {/* Notes List */}
         <div className="flex-1 overflow-y-auto p-5">
           {Object.keys(grouped).length === 0 && (
             <p className="text-center font-mono-lab py-10" style={{ fontSize: 11, color: '#7a7872' }}>
@@ -558,7 +645,6 @@ function NotePicker({ layer, maxCount, locked, includeSynth, onToggle, onClear, 
           ))}
         </div>
 
-        {/* Footer */}
         <div className="p-5" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={onClose}
             className="w-full py-3 rounded-lg font-mono-lab uppercase"
