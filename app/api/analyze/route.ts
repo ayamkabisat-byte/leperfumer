@@ -43,27 +43,29 @@ export async function POST(request: Request) {
     const midStr = midNotes.join(', ');
     const baseStr = baseNotes.join(', ');
 
-    // Prompt lengkap (Diperkaya dengan instruksi nama yang lebih ketat & referensi moodboard baru)
-    const prompt = `Sebagai seorang Kritikus Master Perfumer yang eksentrik, sangat analitis, dan puitis, saya baru saja meracik parfum acak dengan komposisi berikut:
+    // Prompt lengkap: Menggabungkan desain botol master Anda dengan Anti-Cliché & Realistic Luxury Environment
+    const prompt = `Sebagai seorang Master Perfumer dan Kritikus Sastra yang sangat elegan dan puitis, Anda baru saja meracik parfum dengan komposisi berikut:
     Top Notes: ${topStr}
     Heart Notes: ${midStr}
     Base Notes: ${baseStr}
     
-    Berikan ulasan mendalam bergaya arsitektural dan puitis. Gunakan bahasa Indonesia elegan. Tulis dalam format HTML (hanya h2, h3, p, ul, li, strong) tanpa \`\`\`html.
+    Tugas Anda adalah membedah parfum ini sebagai sebuah maha karya seni dan emosi. Gunakan bahasa Indonesia yang sangat elegan, berkelas, dan metaforis tingkat tinggi, NAMUN TETAP MASUK AKAL DAN REALISTIS. Tulis dalam format HTML (hanya h2, h3, p, ul, li, strong) tanpa \`\`\`html.
+    
     Struktur wajib:
-    <h2>[WAJIB 1 ATAU MAKSIMAL 2 KATA SAJA. Ciptakan nama parfum yang artistik, mewah, dan puitis. Gunakan kosakata elegan dari bahasa Prancis, Latin, Arab, Italia, atau Inggris (contoh: Ombre Nomade, Oud Maracuja, Bois D'Argent). DILARANG KERAS hanya sekadar menggabungkan nama-nama notes. Berpikirlah sangat kreatif untuk menangkap esensi, jiwa, dan vibe dari racikan tersebut ke dalam 1-2 kata yang ikonik!]</h2>
-    <Paragraf pembuka dramatis dan puitis (2-3 kalimat). Gunakan analogi yang LAHIR DARI KARAKTER note dominan parfum ini — bukan template tetap. Ranah analogi yang bisa dipilih: kuliner (selain kopi V60), musik, sinematografi, arsitektur, sastra, alam, tekstil, ritual budaya, atau benda sehari-hari yang spesifik. Contoh logika pemilihan: note resin/incense → liturgi atau katedral tua; note aquatic → ombak pertama saat fajar; note gourmand → pastry hangat dari oven Wina atau kunafa yang baru pecah; note leather → sarung tangan kulit di lemari kakek; note green/herbal → pisau membelah daun mint segar; note oud/smoky → bara terakhir di tungku monastik; note citrus → siang yang memantul di marmer piazza Italia. JANGAN pernah memulai dengan analogi kopi V60. Variasikan setiap kali — jika notes-nya kompleks, gabungkan dua ranah analogi yang tak terduga.>
-    <h3>1. Narasi Aroma</h3><p>...</p>
-    <h3>2. Deskripsi Aroma per Layer</h3><ul>...</ul>
-    <h3>3. Keseluruhan Vibe Parfum</h3><p>...</p>
-    <h3>4. Parfum dengan Vibe Serupa</h3><p>...</p>
-    <h3>5. Evaluasi Sang Kritikus Parfum</h3><ul>...</ul>
+    <h2>[WAJIB 1 ATAU MAKSIMAL 2 KATA SAJA. Ciptakan nama parfum yang SANGAT ARTISTIK, ELEGAN, dan BERKELAS. Gunakan kosakata dari bahasa Prancis, Latin, Arab, atau Italia. Contoh: 'Ombre Nomade', 'Oud Maracuja', 'Fumée', 'Acqua Serena'. DILARANG KERAS menggunakan kata generik atau sekadar menggabungkan nama notes. Pikirkan nama yang memancing rasa penasaran intelektual!]</h2>
+    
+    <Paragraf pembuka dramatis (2-3 kalimat). Ciptakan metafora yang puitis dan sangat spesifik, NAMUN TETAP MASUK AKAL (Grounded Reality). Contoh: Jika wanginya woody/smoky, bayangkan "Bara perapian yang perlahan padam di sebuah kabin bersalju di Pegunungan Alpen". Jika wanginya floral/aquatic, bayangkan "Kelopak mawar putih yang basah oleh embun pagi di taman rahasia Florence". JANGAN pernah menyebut kopi V60 dan JANGAN gunakan elemen sci-fi/sihir yang mustahil.>
+    
+    <h3>1. Narasi Aroma</h3><p>(Ceritakan perjalanan aroma ini bagaikan sebuah naskah film pendek yang sangat sinematik dan nyata).</p>
+    <h3>2. Anatomi Aroma per Layer</h3><ul>(Bedah setiap layer secara detail. Jelaskan tekstur dan suhu yang dirasakan otak saat menghirupnya).</ul>
+    <h3>3. Vibe & Persona</h3><p>(Deskripsikan Vibe. Di ruang, sejarah, atau lokasi dunia nyata mana parfum ini eksis? Siapa sosok elegan atau ekstrem yang memakainya?).</p>
+    <h3>4. Resonansi di Dunia Nyata</h3><p>(Sebutkan 3-4 parfum niche/desainer nyata yang se-frekuensi, sertakan alasannya).</p>
+    <h3>5. Evaluasi Sang Kritikus</h3><ul>(Sebutkan Kekuatan/Pros, serta Kelemahan/Cons seperti volatilitas atau profil yang mungkin terlalu 'menantang' untuk hidung awam).</ul>
     <h3>6. Verdict Penilaian Akhir</h3><p>...</p>
     <h3>7. Prompt Visualisasi (Moodboard Persona)</h3>
-    <blockquote>A seamless 4-quadrant photographic moodboard collage in editorial niche-perfume aesthetic (Mykonos, Initio, Roja Parfums style), strictly without any text, labels, borders, or white frames. In the exact center, overlapping all four background images, sits an ultra-luxurious perfume bottle, The bottle's DESIGN must be derived organically from these notes: Top (${topStr}), Heart (${midStr}), Base (${baseStr}). Do NOT default to generic clear-glass-with-gold-cap. First select an AESTHETIC LINEAGE that matches the scent's spirit, then derive all other parameters consistently with that lineage:
+    <blockquote>A seamless 4-quadrant photographic moodboard collage in HIGH-END EDITORIAL REALISM aesthetic (Vogue, Kinfolk, Acqua di Parma, or Tom Ford campaign style), strictly without any text, labels, borders, or white frames. In the exact center, overlapping all four background images, sits an ultra-luxurious, conceptually designed perfume bottle. The bottle's DESIGN must be organically derived from these notes: Top (${topStr}), Heart (${midStr}), Base (${baseStr}). Do NOT default to generic clear-glass-with-gold-cap. First select an AESTHETIC LINEAGE that matches the scent's spirit, then derive all other parameters consistently with that lineage:
 
 ★ AESTHETIC LINEAGE (pick ONE that matches the note character):
-
   - MAINSTREAM LUXURY — refined, polished, editorial-elegant notes (Initio, MFK, Tom Ford Private Blend, Penhaligon's, Le Labo, Amouage, Roja Parfums direction)
   - ARTISANAL / WABI-SABI — raw, folkloric, religious, ritual, deep oriental, animalic-smoky notes (Adi ale Van, Mendittorosa, Naomi Goodsir direction): hand-painted ceramic with mottled patina, raw clay urn, copper/bronze sculpted reliquary with tool marks, glass body wrapped in leather/twine/wood, imperfect handcrafted surface, wax-sealed
   - FUTURISTIC / MOLECULAR — clean, aromatic, synthetic, aquatic, ozonic, modern aldehydic notes (Escentric Molecules, Goest, Phlur, Akro direction): minimal medical-grade vial, capsule cylinder, monolithic frosted block, lab-grade clinical white, anodized aluminum tube, magnetic disc cap, no visible seams
@@ -81,22 +83,35 @@ export async function POST(request: Request) {
 
 ★ LABEL TREATMENT — also lineage-coherent. Luxury → engraved metal plate, embossed medallion, gold-foiled. Wabi-sabi → hand-painted symbol, stamped leather patch, wood-burned mark, no label (purist artifact). Futuristic → minimal typography directly on glass, etched code, holographic foil. Brutalist → industrial stenciled mark, raw embossed metal stamp. Apothecary → typewritten paper label aged/yellowed, hand-numbered, wax stamp. Surrealist → label as illustration or trompe-l'œil. ANY text on the label must be DECORATIVE and ILLEGIBLE — never spelled-out readable words (image generators corrupt text).
 
-The final bottle must feel like a sculpted object born from THIS specific note combination — a viewer should sense both the scent family AND the aesthetic worldview from the bottle alone. A radical avant-garde scent should NOT come in a Tom Ford box; a folkloric Romanian-Orthodox scent should NOT come in a Le Labo cylinder.
+The final bottle must feel like a sculpted object born from THIS specific note combination — a viewer should sense both the scent family AND the aesthetic worldview from the bottle alone. 
 
-COMPOSITION RULES — Randomly pick ONE persona/lifestyle archetype below to ensure maximum variety (DO NOT just use back-views!):
-- EDITORIAL FRONT-FACING PORTRAIT: Subject looking directly at the camera or slightly off-angle, high-fashion editorial lighting (Vogue style), conveying the exact mood of the perfume (e.g., seductive, stoic, fresh, mysterious).
-- DRAMATIC HALF-BODY & DETAILS: Focus on the torso, hands, clothing textures (silk, leather, linen), or extreme close-up of a jawline/lips/neck with dramatic chiaroscuro lighting.
-- MYSTERIOUS SILHOUETTE / BACK-VIEW: Subject looking out toward a vast landscape, ocean, or city skyline, or a completely backlit profile.
-- LUXURY LIFESTYLE / VEHICLES (NO-HUMAN): Replace the persona entirely with a high-end object or vehicle that matches the vibe perfectly. Examples: a sleek luxury yacht deck or speedboat (for aquatic/marine); a classic vintage sports car interior or leather seats (for leather/smoky); a private jet cabin, a grand piano, crystal chandelier, or minimalist architectural villa (for opulent/modern scents).
-- ATMOSPHERIC ENVIRONMENT (NO-HUMAN): A purely scenic shot organically born from the notes. BE HIGHLY CREATIVE! Examples: sailing on the Mediterranean sea, a sunlit Amalfi coast balcony, or fresh fruits/ingredients resting beautifully on warm tropical sand (citrus/aquatic/fruity); a serene Japanese temple or Zen garden (tea/bamboo/woods); a pristine Bali beach (tropical); a moody European street during autumn leaves or heavy winter snow (spicy/leather/warm); a patisserie counter (gourmand); an Orthodox cathedral or Moroccan riad (incense/oriental). Let the specific notes dictate the geography and season!
+★ BANNED CLICHÉS & STRICT RULES (CRITICAL FOR MOODBOARD BACKGROUNDS):
+- NO brutalist concrete buildings on cliffs or near the ocean.
+- NO sci-fi elements, cyberpunk cities, glowing neon streets, or futuristic laboratories.
+- NO impossible physics, floating objects, or surrealism. Gravity and real-world physics must apply!
+- NO blank-staring models in generic suits/dresses.
+- Everything must look like a multi-million dollar real-world photography shoot, deeply rooted in high-end luxury, nature, or curated still life.
 
-Distribute these four content types organically across the quadrants (do NOT fix positions):
-1. Ingredient macro from top/heart notes (${topStr}, ${midStr}) — fruit halved with water droplets, spices on aged wood, dried botanicals on linen, citrus flesh glistening, raw petals, or ingredients creatively arranged on sand/stone.
-2. Atmospheric environment or Luxury Lifestyle object that organically reflects the scent's character (as chosen above).
-3. Persona quadrant (Editorial portrait, body details, or silhouette) — OR an additional architectural/lifestyle substitute if a completely NO-HUMAN variant is chosen.
-4. Base-note material macro (${baseStr}) — oud bark, dark leather grain, cigar bundle, raw resin pearls, cracked vetiver root, smoldering wood
+★ HYPER-SPECIFIC ENVIRONMENT DIRECTIVES (Pick ONE dynamically based on the notes for the background quadrants):
+  - MEDITERRANEAN ESCAPE (Citrus, aquatic, fresh): Sun-drenched Amalfi balcony, a sleek luxury yacht deck, white linen blowing in the wind, azure waters, terracotta tiles, fresh citrus resting on sun-warmed marble, seaside vacation aesthetics.
+  - OLD-WORLD ARISTOCRACY (Leather, tobacco, powdery): A mahogany library, dusty sunbeams, crystal whiskey decanters, worn Chesterfield leather sofas, vintage velvet, European streets covered in autumn leaves or heavy winter snow.
+  - MODERNIST ZEN (Tea, green, bamboo, watery): Minimalist Japanese temple, a serene Zen garden with raked sand, smooth river stones, trickling water features, moss gardens, soft diffused morning light through shoji screens.
+  - DESERT NOMAD (Oud, incense, warm spices): Sahara dunes at twilight, rich woven kilim rugs, warm glowing embers, oxidized copper tea sets, swirling incense smoke, deep shadows.
+  - ROMANTIC DECADENCE (Rich florals, gourmand, dark woods): A lavish Parisian apartment, spilled red wine, crushed silk bedsheets, blooming dark roses, melting candlelight on a silver candelabra, ingredients resting beautifully on warm tropical sand.
 
-Lighting is consistently cinematic, low-key, seductive, and color-graded to the scent profile (amber-warm for orientals; cool-violet for fresh; deep-burgundy for opulent; mint-silver for aquatic). Shallow depth of field on every quadrant. The four quadrants blend smoothly at their seams without visible borders.</blockquote>`;
+COMPOSITION RULES — Pick ONE highly creative but realistic archetype below for the human/action element:
+- THE CURATED STILL LIFE: Ingredients meticulously arranged like a high-end culinary or botanical photoshoot (e.g., spices scattered on dark slate, exotic fruits creatively arranged on pristine beach sand, flowers resting on aged wood or wet stones).
+- THE CINEMATIC MOMENT: A realistic but dynamic fraction of a second (e.g., water splashing over fresh mint leaves, smoke billowing from a piece of burning agarwood).
+- THE EDITORIAL PERSONA: A fashion editorial close-up or evocative pose. Extremely tight crop on a jawline, collarbone, or hands interacting with luxurious textures (silk, leather, water), or a subject engaged in a luxurious vacation setting (e.g., relaxing on a yacht, walking in a snowy European city, meditating in a Zen garden).
+- THE BREATHTAKING LOCATION: A purely scenic shot of the chosen environment directive (e.g., the interior of the Japanese temple, the edge of the desert tent, the sunlit Italian terrace, a pristine Bali beach).
+
+Distribute these four content types organically across the quadrants:
+1. Editorial still-life macro of top/heart notes (${topStr}, ${midStr}) arranged beautifully on a relevant surface (e.g., sand, stone, marble, wood).
+2. The breathtaking Location or Luxury Lifestyle object (from the chosen directive).
+3. The Editorial Persona close-up OR The Cinematic Moment.
+4. Macro texture/material shot representing base notes (${baseStr}) — e.g., macro shot of rich leather grain, smoldering wood, or dark amber liquid.
+
+Lighting must be highly cinematic, mimicking natural sunlight or atmospheric real-world lighting (golden hour, moody overcast, candle-lit, or stark studio flash). Color grading must perfectly match the scent's profile. Shallow depth of field on every quadrant. The four quadrants blend smoothly at their seams without visible borders.</blockquote>`;
 
     // Panggil Gemini API (Model stabil: gemini-2.5-flash)
     const res = await fetch(
