@@ -89,9 +89,6 @@ The final bottle must feel like a sculpted object born from THIS specific note c
 - NO brutalist concrete buildings on cliffs or near the ocean.
 - NO sci-fi elements, cyberpunk cities, glowing neon streets, or futuristic laboratories.
 - NO impossible physics, floating objects, or surrealism. Gravity and real-world physics must apply!
-- NO blank-staring models in generic suits/dresses.
-- Everything must look like a multi-million dollar real-world photography shoot, deeply rooted in high-end luxury, nature, or curated still life.
-
 ★ HYPER-SPECIFIC ENVIRONMENT DIRECTIVES (Pick ONE dynamically based on the notes for the background quadrants):
   - MEDITERRANEAN ESCAPE (Citrus, aquatic, fresh): Sun-drenched Amalfi balcony, a sleek luxury yacht deck, white linen blowing in the wind, azure waters, terracotta tiles, fresh citrus resting on sun-warmed marble, seaside vacation aesthetics.
   - OLD-WORLD ARISTOCRACY (Leather, tobacco, powdery): A mahogany library, dusty sunbeams, crystal whiskey decanters, worn Chesterfield leather sofas, vintage velvet, European streets covered in autumn leaves or heavy winter snow.
@@ -102,13 +99,13 @@ The final bottle must feel like a sculpted object born from THIS specific note c
 COMPOSITION RULES — Pick ONE highly creative but realistic archetype below for the human/action element:
 - THE CURATED STILL LIFE: Ingredients meticulously arranged like a high-end culinary or botanical photoshoot (e.g., spices scattered on dark slate, exotic fruits creatively arranged on pristine beach sand, flowers resting on aged wood or wet stones).
 - THE CINEMATIC MOMENT: A realistic but dynamic fraction of a second (e.g., water splashing over fresh mint leaves, smoke billowing from a piece of burning agarwood).
-- THE EDITORIAL PERSONA: A fashion editorial close-up or evocative pose. Extremely tight crop on a jawline, collarbone, or hands interacting with luxurious textures (silk, leather, water), or a subject engaged in a luxurious vacation setting (e.g., relaxing on a yacht, walking in a snowy European city, meditating in a Zen garden).
+- THE HUMAN ELEMENT (PERSONA): A human subject that perfectly embodies the perfume's mood. Randomly select the pose and vibe: It can be a striking front-facing portrait, a natural candid lifestyle moment (laughing, walking, reading), a mysterious "from behind" shoot looking at the scenery, a dramatic faceless crop (focusing on lips, neck, or hands with luxurious textures), or a playful/seductive interaction with the environment. VARY THIS CONSTANTLY! The styling, emotion (e.g., dramatic, playful, mysterious, stoic), and pose MUST organically match the scent's psychological profile and the chosen climate.
 - THE BREATHTAKING LOCATION: A purely scenic shot of the chosen environment directive (e.g., the interior of the Japanese temple, the edge of the desert tent, the sunlit Italian terrace, a pristine Bali beach).
 
 Distribute these four content types organically across the quadrants:
 1. Editorial still-life macro of top/heart notes (${topStr}, ${midStr}) arranged beautifully on a relevant surface (e.g., sand, stone, marble, wood).
 2. The breathtaking Location or Luxury Lifestyle object (from the chosen directive).
-3. The Editorial Persona close-up OR The Cinematic Moment.
+3. The Human Element (Persona) OR The Cinematic Moment.
 4. Macro texture/material shot representing base notes (${baseStr}) — e.g., macro shot of rich leather grain, smoldering wood, or dark amber liquid.
 
 Lighting must be highly cinematic, mimicking natural sunlight or atmospheric real-world lighting (golden hour, moody overcast, candle-lit, or stark studio flash). Color grading must perfectly match the scent's profile. Shallow depth of field on every quadrant. The four quadrants blend smoothly at their seams without visible borders.</blockquote>`;
