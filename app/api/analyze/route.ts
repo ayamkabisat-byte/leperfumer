@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const midStr = midNotes.join(', ');
     const baseStr = baseNotes.join(', ');
 
-    // Prompt lengkap: Menggabungkan Soul Object Bottle Concept dengan Realistic Luxury Environment
+    // Prompt lengkap: Gabungan Lineage Akurat (Adi Ale Van/Lattafa) dengan Metode Soul Object & Environment Dinamis
     const prompt = `Sebagai seorang Master Perfumer dan Kritikus Sastra yang sangat elegan dan puitis, Anda baru saja meracik parfum dengan komposisi berikut:
     Top Notes: ${topStr}
     Heart Notes: ${midStr}
@@ -63,32 +63,32 @@ export async function POST(request: Request) {
     <h3>5. Evaluasi Sang Kritikus</h3><ul>(Sebutkan Kekuatan/Pros, serta Kelemahan/Cons seperti volatilitas atau profil yang mungkin terlalu 'menantang' untuk hidung awam).</ul>
     <h3>6. Verdict Penilaian Akhir</h3><p>...</p>
     <h3>7. Prompt Visualisasi (Moodboard Persona)</h3>
-    <blockquote>A seamless 4-quadrant photographic moodboard collage in HIGH-END EDITORIAL REALISM aesthetic (Vogue, Kinfolk, Acqua di Parma, or Tom Ford campaign style), strictly without any text, labels, borders, or white frames. In the exact center, overlapping all four background images, sits an ultra-luxurious, conceptually designed perfume bottle. 
+    <blockquote>A seamless 4-quadrant photographic moodboard collage in HIGH-END EDITORIAL REALISM aesthetic (Vogue, Kinfolk, Acqua di Parma, or Tom Ford campaign style), strictly without any text, labels, borders, or white frames. In the exact center, overlapping all four background images, sits an ultra-luxurious, conceptually designed perfume bottle.
+
+★ BOTTLE ARCHITECTURE & AESTHETIC LINEAGE (Select ONE lineage that perfectly aligns with the notes' character):
+  - ROMANIAN ARTISANAL WABI-SABI (Adi Ale Van style): 100% handcrafted, intentionally imperfect. Each piece unique, impossible to reproduce. Bottle body painted with acrylic earth pigments — mottled, cracked, worn. Decorated with hammered oxidized metal (rusted iron, tarnished copper wire), raw leather cords, and thick wax seals stamped with Orthodox or folkloric symbols. THE CAP IS MANDATORY NATURE SCULPTURE: a real dried forest mushroom with visible mycelium texture, a gnarled driftwood plug, or a hand-forged iron Orthodox cross, heavily distressed. Comes in a hand-painted WOODEN BOX lined with aged leather. (Best for: smoky, earthy, dark leather, incense, dark tobacco notes).
+  - GULF MAXIMALIST OPULENCE (Lattafa / Swiss Arabian style): Extremely heavy faceted glass — thick walls, jewel-cut geometry inspired by Islamic architecture and arabesque patterns. Colors: deep amber, midnight sapphire, emerald, or onyx matte. Body embossed with arabesques, geometric latticework, or Arabic calligraphy in raised gold or platinum. WEIGHT IS KEY. THE CAP: a bold sculptural statement — a coiled golden falcon, dual cresting stallion heads, a jeweled crescent moon, or a hexagonal crystal dome with embedded gem. Never a plain dome. (Best for: rich oud, saffron, heavy woods, sweet gourmands).
+  - FRENCH-ARABIC HYBRID LUXE (French Avenue / Fragrance World style): Blends French minimalist silhouettes with Middle Eastern opulent details. Smooth, polished heavy glass in a clean architectural shape — octagonal, tapered, or faceted — paired with rich warm color gradients (cognac-amber to deep ruby, or dusty rose to gold). Gold-plated collar and base ring. THE CAP: a polished solid-metal geometric shape — pyramid, faceted cube, or a stylized flame/crescent motif in brushed gold. Finish is flawless and weighty. (Best for: floral-oriental, fruity-spicy, accessible luxury).
+  - ELEVATED ALCHEMICAL (Slumberhouse / Aesop style): Heavy dark violet or cobalt thick glass, premium ground-glass stoppers wrapped in twine, thick textured cotton labels with wax seals, vintage brass or copper measuring elements. (Best for herbal, boozy, earthy, aromatic notes).
 
 ★ BOTTLE CONCEPT — ORGANIC DERIVATION METHOD (MANDATORY PROCESS):
-
 STEP 1 — IDENTIFY THE "SOUL OBJECT":
 Analyze the psychological and sensory profile of these notes: Top (${topStr}) · Heart (${midStr}) · Base (${baseStr}).
-Then identify ONE non-perfume physical object from the real world that this scent would BE if it were a tangible thing. 
+Identify ONE non-perfume physical object from the real world that this scent would BE if it were a tangible thing. 
 This object must come from one of these categories:
   - A found natural object (e.g., a dried fungi cluster, a chunk of raw amber resin, a fossilized sea creature)
   - A hand-tool or instrument of craft (e.g., an old Damascus-steel knife, a worn leather-bound apothecary scale, a brass astrolabe)
-  - An architectural fragment (e.g., a carved muqarnas tile from a Moroccan riad, a single onyx column capital, a weathered iron door hinge)
+  - An architectural fragment (e.g., a carved muqarnas tile, a single onyx column capital, a weathered iron door hinge)
   - A ritual or ceremonial object (e.g., a wax-sealed reliquary, an incense burner, a prayer bead made of fossilized wood)
 
 Write ONE sentence: "This fragrance IS a [Soul Object] because [2-sentence sensory/emotional justification]."
 
 STEP 2 — TRANSLATE TO BOTTLE ARCHITECTURE:
-Design a perfume bottle whose FORM, MATERIAL, and CAP are a direct reinterpretation of that Soul Object. The bottle should look like it was commissioned by a master glassblower and sculptor who was given only that Soul Object as a brief — never a generic perfume bottle reference.
-
+Design the bottle by FUSING your chosen "Soul Object" with the strict rules of your chosen "Aesthetic Lineage".
 Rules:
-- Body material must evoke the Soul Object's texture (e.g., if Soul Object is raw amber, bottle is thick honey-amber glass with uneven surface; if it's Damascus steel, body is layered dark and silver swirled glass)
-- Cap MUST BE a miniature sculptural echo of the Soul Object, not just a geometric shape — minimum 3 specific detail descriptors (e.g., "a bronze astrolabe cap with articulated rings, tarnished at the edges, with a central star-shaped aperture engraved with Arabic numerals")
-- Size and weight must be described (e.g., "feels like holding a small river stone — dense, cool, palm-filling")
-- One deliberate subversive element that breaks perfume bottle conventions: NO standard spray nozzle visible from the front (hide it, recess it, or disguise it as part of the design)
-
-★ AESTHETIC LINEAGE REFERENCE (for stylistic DNA only, do NOT copy the bottle shape):
-After designing your concept, name ONE real brand whose craftsmanship spirit your bottle inherits (choose from: Adi Ale Van, Slumberhouse, Initio, Lattafa Pride, French Avenue Spectre, Afnan Supremacy, or invent your own comparable brand).
+- Body material must obey the Lineage but evoke the Soul Object's texture (e.g., if Romanian Wabi-Sabi + Damascus steel, the bottle has hammered rusted layers).
+- The Cap MUST BE a miniature sculptural echo of the Soul Object, adapted to the lineage (e.g., a golden sculptural version for Gulf Opulence, or a raw iron forged version for Romanian Wabi-Sabi).
+- One deliberate subversive element: NO standard spray nozzle visible from the front (hide it, recess it, or disguise it as part of the design).
 
 ★ BANNED CLICHÉS & STRICT RULES (CRITICAL FOR MOODBOARD BACKGROUNDS):
 - NO brutalist concrete buildings on cliffs or near the ocean.
@@ -101,7 +101,7 @@ After designing your concept, name ONE real brand whose craftsmanship spirit you
   Analyze the psychological profile, temperature, and mood of the notes, then INVENT a highly specific, realistic luxury location, geography, and season that perfectly embodies this scent. 
   IDEAS FOR INSPIRATION: A sun-drenched Amalfi balcony, a snowy European street in deep winter, a serene minimalist Japanese temple, a pristine Bali beach at golden hour, a lavish Parisian apartment with spilled wine, a dusty mahogany library in a Scottish castle, a luxury yacht deck in the Mediterranean, a vibrant Moroccan riad, or ingredients resting beautifully on warm tropical sand. Let the notes dictate the geography and climate!
 
-COMPOSITION RULES — Pick ONE highly creative but realistic archetype below for the human/action element:
+COMPOSITION RULES — Pick ONE highly creative but realistic archetype below for the human/action element (VARY THIS CONSTANTLY, do not always hide faces):
 - THE CURATED STILL LIFE: Ingredients meticulously arranged like a high-end culinary or botanical photoshoot (e.g., spices scattered on dark slate, exotic fruits creatively arranged on pristine beach sand, flowers resting on aged wood or wet stones).
 - THE CINEMATIC MOMENT: A realistic but dynamic fraction of a second (e.g., water splashing over fresh mint leaves, smoke billowing from a piece of burning agarwood).
 - THE HUMAN ELEMENT (PERSONA): A human subject that perfectly embodies the perfume's mood. Randomly select the pose and vibe: It can be a striking front-facing portrait, a natural candid lifestyle moment (laughing, walking, reading), a mysterious "from behind" shoot looking at the scenery, a dramatic faceless crop (focusing on lips, neck, or hands with luxurious textures), or a playful/seductive interaction with the environment. VARY THIS CONSTANTLY! The styling, emotion, and pose MUST organically match the scent's psychological profile and the chosen climate.
