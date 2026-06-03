@@ -84,9 +84,11 @@ Gunakan hanya sebagai batu loncatan, lalu lepaskan – biarkan aroma yang memimp
 Ciptakan latar yang sangat spesifik, realistis, dan mewah sesuai suhu dan psikologi notes (contoh: balkon Amalfi yang disinari mentari, jalanan bersalju Eropa, perpustakaan mahoni di kastil Skotlandia, pantai Bali yang hangat).
 DISTRIBUSIKAN EMPAT KUADRAN TANPA BINGKAI:
 - Kuadran 1: Still-life makro notes (top/heart) di atas permukaan yang relevan dengan latar.
-- Kuadran 2: Lokasi atau objek gaya hidup mewah dari Dynamic Environment.
+- Kuadran 2: Lokasi utama (establishing shot) dari Dynamic Environment – tempat di mana parfum ini "berada" secara geografis dan arsitektural.
 - Kuadran 3: Elemen manusia ATAU momen sinematik (VARIASIKAN terus – potret depan, kandid, dari belakang, close-up tangan/bibir, interaksi playful dengan lingkungan. Jangan selalu wajah menghadap kamera atau model generic berbusana kaku.)
-- Kuadran 4: Foto makro ekstrem tekstur botol (tunjukkan pori, retakan, beludru, atau oksidasi logam secara taktil).
+- Kuadran 4: PILIH SALAH SATU dari dua opsi berikut (JANGAN mengulang jenis konten yang sudah dipakai di Kuadran 2):
+  Opsi A: Still-life makro atau tekstur abstrak yang merepresentasikan karakter base notes (misalnya: kayu tua yang retak, resin fosil, rempah-rempah utuh di atas batu, atau kulit samak yang disinari cahaya remang).
+  Opsi B: Fragmen suasana, acara, atau momen budaya yang menangkap "vibe" parfum secara intim (contoh: meja jamuan makan malam dengan gelas anggur, festival malam di Marrakech, konser piano di ballroom kayu, atau puncak gunung saat matahari terbit). Fokus pada mood aktivitas, bukan lokasi statis.
 
 ★ LARANGAN KLISE (CRITICAL):
 - NO bangunan brutalist di tebing atau dekat laut.
@@ -122,7 +124,7 @@ Pencahayaan sinematik alami (golden hour, overcast, cahaya lilin), shallow depth
     let html = candidateText.replace(/```html|```/gi, '');
     html = sanitizeHtml(html);
 
-    // Ekstrak nama dari h2 (akan dipakai sebagai judul, lalu dihapus dari isi)
+    // Ekstrak nama dari h2
     const h2Match = html.match(/<h2>([\s\S]*?)<\/h2>/i);
     const suggestedName = h2Match ? h2Match[1].trim() : '';
     html = html.replace(/<h2>[\s\S]*?<\/h2>/i, '');
@@ -131,7 +133,7 @@ Pencahayaan sinematik alami (golden hour, overcast, cahaya lilin), shallow depth
     const blockquoteMatch = html.match(/<blockquote>([\s\S]*?)<\/blockquote>/i);
     const promptText = blockquoteMatch ? blockquoteMatch[1].trim() : '';
 
-    // Beri kelas Tailwind agar tampilan langsung cantik
+    // Beri kelas Tailwind
     html = html.replace(
       /<h3>/g,
       '<h3 class="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4 border-b dark:border-gray-600 pb-2">'
