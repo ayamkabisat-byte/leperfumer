@@ -264,8 +264,10 @@ Buat prompt bahasa Inggris untuk gambar moodboard 4 kuadran dengan aturan beriku
 - Jangan memakai brutalist cliff house, neon cyberpunk, atau botol transparan generik.
 </blockquote>`;
 
-    const model =
-      process.env.GEMINI_MODEL?.trim() || 'gemini-3-flash-preview';
+    // gemini-3.5-flash: model GA (stabil) per Mei 2026, default thinking effort
+    // MEDIUM. Override via env GEMINI_MODEL jika perlu ganti tier
+    // (mis. gemini-3.1-flash-lite untuk traffic tinggi/biaya rendah).
+    const model = process.env.GEMINI_MODEL?.trim() || 'gemini-3.5-flash';
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30_000);
@@ -292,7 +294,16 @@ Buat prompt bahasa Inggris untuk gambar moodboard 4 kuadran dengan aturan beriku
             generationConfig: {
               temperature: 0.9,
               topP: 0.92,
-              maxOutputTokens: 3600,
+              // Headroom besar (model mendukung hingga 65k) supaya thinking
+              // tokens tidak menghabiskan seluruh budget sebelum sempat
+              // menulis output HTML aktual.
+              maxOutputTokens: 8192,
+              // Task ini generatif/terstruktur, bukan reasoning berat, jadi
+              // thinking ditekan ke LOW agar mayoritas budget jatuh ke teks
+              // jawaban, bukan proses berpikir internal.
+              thinkingConfig: {
+                thinkingLevel: 'LOW',
+              },
             },
           }),
         }
@@ -322,6 +333,19 @@ Buat prompt bahasa Inggris untuk gambar moodboard 4 kuadran dengan aturan beriku
 
     const data = await response.json();
 
+    const blockReason = data?.promptFeedback?.blockReason;
+
+    if (blockReason) {
+      console.error('Gemini blocked prompt:', { blockReason });
+
+      return noStoreJson(
+        { error: 'Permintaan tidak dapat diproses oleh AI (diblokir oleh filter konten).' },
+        { status: 422 }
+      );
+    }
+
+    const finishReason = data?.candidates?.[0]?.finishReason;
+
     const candidateText =
       data?.candidates?.[0]?.content?.parts
         ?.map((part: { text?: string }) => part.text || '')
@@ -329,10 +353,19 @@ Buat prompt bahasa Inggris untuk gambar moodboard 4 kuadran dengan aturan beriku
         .trim() || '';
 
     if (!candidateText) {
-      return noStoreJson(
-        { error: 'Respons AI kosong atau tidak sesuai format.' },
-        { status: 502 }
-      );
+      console.error('Gemini returned empty text:', {
+        finishReason,
+        usageMetadata: data?.usageMetadata,
+      });
+
+      const error =
+        finishReason === 'MAX_TOKENS'
+          ? 'AI kehabisan ruang output sebelum selesai menulis. Silakan coba lagi.'
+          : finishReason === 'SAFETY' || finishReason === 'RECITATION'
+            ? 'Respons AI ditahan oleh filter konten. Coba ubah salah satu note.'
+            : 'Respons AI kosong atau tidak sesuai format.';
+
+      return noStoreJson({ error }, { status: 502 });
     }
 
     let html = sanitizeGeneratedHtml(
