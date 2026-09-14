@@ -1,16 +1,21 @@
 import type { NextConfig } from 'next';
 
-const nextConfig: NextConfig = {
-  // ... pengaturan lain yang sudah ada (biarkan tetap)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+let supabaseHostname: string | null = null;
 
+if (supabaseUrl) {
+  try {
+    supabaseHostname = new URL(supabaseUrl).hostname;
+  } catch {
+    console.warn('NEXT_PUBLIC_SUPABASE_URL is not a valid URL.');
+  }
+}
+
+const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'rbxtouqsxnjtncdrhjtc.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-    ],
+    remotePatterns: supabaseHostname
+      ? [{ protocol: 'https', hostname: supabaseHostname, pathname: '/storage/v1/object/public/**' }]
+      : [],
   },
 };
 

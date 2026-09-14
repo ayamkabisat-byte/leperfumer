@@ -1,99 +1,96 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-const AMBER = 'oklch(72% 0.18 68)';
+const MODELS = [
+  { value: 'gemini-3.8-flash', label: 'Gemini 3.8 Flash', note: 'Recommended · latest stable' },
+  { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash', note: 'Stable fallback' },
+  { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash', note: 'Stable compatibility' },
+];
 
 export default function SettingsPage() {
   const [geminiKey, setGeminiKey] = useState('');
-  const [showKey, setShowKey] = useState(false);
+  const [galleryToken, setGalleryToken] = useState('');
+  const [model, setModel] = useState('gemini-3.8-flash');
+  const [showSecrets, setShowSecrets] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('gemini_user_key');
-    if (stored) setGeminiKey(stored);
+    const legacyKey = localStorage.getItem('gemini_user_key') || '';
+    setGeminiKey(localStorage.getItem('leperfumer_gemini_key') || legacyKey);
+    setGalleryToken(localStorage.getItem('leperfumer_gallery_token') || '');
+    setModel(localStorage.getItem('leperfumer_ai_model') || 'gemini-3.8-flash');
   }, []);
 
-  const handleSave = () => {
-    localStorage.setItem('gemini_user_key', geminiKey);
+  const save = () => {
+    const key = geminiKey.trim();
+    const token = galleryToken.trim();
+    if (key) localStorage.setItem('leperfumer_gemini_key', key); else localStorage.removeItem('leperfumer_gemini_key');
+    if (token) localStorage.setItem('leperfumer_gallery_token', token); else localStorage.removeItem('leperfumer_gallery_token');
+    localStorage.setItem('leperfumer_ai_model', model);
+    localStorage.removeItem('gemini_user_key');
     setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+    window.setTimeout(() => setSaved(false), 1800);
   };
 
-  const handleClear = () => {
+  const clearSecrets = () => {
+    localStorage.removeItem('leperfumer_gemini_key');
+    localStorage.removeItem('leperfumer_gallery_token');
     localStorage.removeItem('gemini_user_key');
     setGeminiKey('');
+    setGalleryToken('');
   };
 
   return (
-    <main className="max-w-lg mx-auto px-5 pb-20">
-      <header className="text-center pt-16 pb-10">
-        <h1 className="font-serif-lab font-light"
-          style={{ fontSize: 'clamp(36px, 6vw, 52px)', letterSpacing: '0.04em',
-            background: `linear-gradient(135deg, ${AMBER} 0%, #e8e6e0 100%)`,
-            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Setelan
-        </h1>
-        <p className="font-mono-lab uppercase mt-2" style={{ fontSize: 11, letterSpacing: '0.14em', color: '#7a7872' }}>
-          Konfigurasi laboratorium
-        </p>
-      </header>
-
-      <div className="panel-lab p-6 mb-4">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-2 h-2 rounded-full" style={{ background: AMBER, boxShadow: `0 0 8px ${AMBER}` }}></div>
-          <span className="font-mono-lab uppercase" style={{ fontSize: 10, letterSpacing: '0.16em', color: '#7a7872' }}>
-            Google Gemini API Key
-          </span>
-          <div className="flex-1 h-px" style={{ background: 'rgba(255,255,255,0.07)' }}></div>
+    <main className="site-shell pb-24">
+      <section className="hero" style={{ gridTemplateColumns: '1fr' }}>
+        <div>
+          <div className="eyebrow">Atelier configuration</div>
+          <h1 className="display-title">Settings.</h1>
+          <p className="hero-copy">Pilih model AI dan simpan kredensial BYOK hanya pada browser ini. Server key tetap menjadi fallback bila field Gemini dikosongkan.</p>
         </div>
+      </section>
 
-        <div className="relative mb-3">
-          <input type={showKey ? 'text' : 'password'}
-            value={geminiKey} onChange={e => setGeminiKey(e.target.value)}
-            placeholder="AIza..."
-            className="w-full px-4 py-3 pr-12 rounded-xl outline-none font-mono-lab"
-            style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.08)',
-              color: '#e8e6e0', fontSize: 13, letterSpacing: geminiKey && !showKey ? '0.2em' : '0.04em' }}/>
-          <button onClick={() => setShowKey(v => !v)} type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2"
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#7a7872' }}>
-            {showKey ? '🙈' : '👁'}
-          </button>
-        </div>
+      <div className="grid lg:grid-cols-[1fr_.7fr] gap-4 max-w-5xl">
+        <section className="atelier-panel">
+          <div className="panel-kicker">AI engine</div>
+          <label className="block mb-5">
+            <span className="eyebrow block mb-2">Model</span>
+            <select className="field" value={model} onChange={(event) => setModel(event.target.value)}>
+              {MODELS.map((item) => <option key={item.value} value={item.value}>{item.label} — {item.note}</option>)}
+            </select>
+          </label>
 
-        <p className="font-mono-lab mb-5" style={{ fontSize: 10, color: '#7a7872', lineHeight: 1.6, letterSpacing: '0.04em' }}>
-          Jika dikosongkan, aplikasi menggunakan key server bawaan.<br/>
-          Key disimpan di browser Anda (localStorage).
-        </p>
+          <label className="block">
+            <span className="eyebrow block mb-2">Google Gemini API key · optional</span>
+            <input className="field font-mono-lab text-[12px]" type={showSecrets ? 'text' : 'password'} value={geminiKey} onChange={(event) => setGeminiKey(event.target.value)} placeholder="AIza…" autoComplete="off" />
+          </label>
+          <p className="mt-2 text-[11px] leading-5" style={{ color: 'var(--muted)' }}>Kosongkan untuk memakai GEMINI_API_KEY milik server. Key BYOK dikirim ke route server lalu diteruskan ke Google melalui header, bukan URL query.</p>
 
-        <div className="flex gap-3">
-          <button onClick={handleSave}
-            className="flex-1 py-3 rounded-xl font-mono-lab uppercase transition"
-            style={{ fontSize: 11, letterSpacing: '0.12em',
-              background: saved ? 'rgba(60,180,100,0.15)' : 'linear-gradient(135deg, rgba(200,150,50,0.15), rgba(140,80,200,0.1))',
-              border: saved ? '1px solid rgba(60,180,100,0.4)' : '1px solid rgba(200,150,60,0.4)',
-              color: '#e8e6e0', cursor: 'pointer' }}>
-            {saved ? '✓ Tersimpan' : 'Simpan Key'}
-          </button>
-          {geminiKey && (
-            <button onClick={handleClear}
-              className="px-5 py-3 rounded-xl font-mono-lab uppercase"
-              style={{ fontSize: 11, letterSpacing: '0.12em',
-                background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)',
-                color: '#7a7872', cursor: 'pointer' }}>
-              Hapus
-            </button>
-          )}
-        </div>
-      </div>
+          <div className="mt-7 pt-6" style={{ borderTop: '1px solid var(--line)' }}>
+            <label className="block">
+              <span className="eyebrow block mb-2">Archive upload token</span>
+              <input className="field font-mono-lab text-[12px]" type={showSecrets ? 'text' : 'password'} value={galleryToken} onChange={(event) => setGalleryToken(event.target.value)} placeholder="Same value as GALLERY_UPLOAD_TOKEN" autoComplete="off" />
+            </label>
+            <p className="mt-2 text-[11px] leading-5" style={{ color: 'var(--muted)' }}>Wajib untuk deployment production. Nilainya harus sama dengan GALLERY_UPLOAD_TOKEN di environment server.</p>
+          </div>
 
-      <div className="rounded-xl px-5 py-4 font-mono-lab"
-        style={{ background: 'rgba(180,130,60,0.05)', border: '1px solid rgba(180,130,60,0.12)',
-          fontSize: 10, color: '#7a7872', lineHeight: 1.7, letterSpacing: '0.04em' }}>
-        Dapatkan API key gratis di{' '}
-        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer"
-          style={{ color: AMBER, textDecoration: 'underline' }}>aistudio.google.com</a>
+          <div className="flex flex-wrap gap-2 mt-7">
+            <button className="primary-button px-6 py-3 text-[11px] uppercase tracking-[0.1em]" onClick={save}>{saved ? 'Saved ✓' : 'Save settings'}</button>
+            <button className="soft-button px-5 py-3 text-[11px]" onClick={() => setShowSecrets((value) => !value)}>{showSecrets ? 'Hide secrets' : 'Show secrets'}</button>
+            <button className="ghost-button px-5 py-3 text-[11px]" onClick={clearSecrets}>Clear secrets</button>
+          </div>
+        </section>
+
+        <aside className="atelier-panel h-fit">
+          <div className="panel-kicker">Security notes</div>
+          <div className="space-y-5 text-[12px] leading-6" style={{ color: 'var(--paper-soft)' }}>
+            <p><strong style={{ color: 'var(--paper)' }}>AI output is structured JSON.</strong><br/>UI tidak lagi menyuntik HTML hasil model ke DOM.</p>
+            <p><strong style={{ color: 'var(--paper)' }}>Local storage is convenience, not a vault.</strong><br/>Gunakan key dengan quota/restriction dan hapus dari browser yang bukan milik Anda.</p>
+            <p><strong style={{ color: 'var(--paper)' }}>Archive writes are protected.</strong><br/>Service role Supabase tetap server-side dan route upload membutuhkan token pada production.</p>
+          </div>
+          <a className="soft-button block mt-7 px-4 py-3 text-center text-[11px] no-underline" style={{ color: 'var(--paper-soft)' }} href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Open Google AI Studio ↗</a>
+        </aside>
       </div>
     </main>
   );
