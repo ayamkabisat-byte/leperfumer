@@ -1,36 +1,24 @@
 import { FULL_DATABASE, PREFIXES, type Note, type Recipe } from './perfumeDB';
 import { DATABASE_RESEARCH_VERSION, mergeNoteExpansion } from './perfumeDBExpansion';
+import { applyLayerProfiles, getNoteLayerProfile } from './perfumeLayerModel';
 
 export type Layer = 'top' | 'mid' | 'base';
+export type CompositionMode = 'pyramid' | 'list';
 
 const EXPERIMENTAL_CATEGORIES = new Set(['syntheticWeird', 'beverages']);
 
-/**
- * Compatibility bridge while the legacy monolithic perfumeDB is being split up.
- * app/page.tsx imports FULL_DATABASE directly for NotePicker, so mutate that shared
- * array once at module initialization. Both picker and generator then use exactly
- * the same researched/deduplicated catalogue.
- */
-export const PERFUME_DATABASE = mergeNoteExpansion(FULL_DATABASE);
+/** Shared researched catalogue. The second pass applies multi-layer capability profiles
+ * instead of assuming one category always belongs to one pyramid position. */
+export const PERFUME_DATABASE = applyLayerProfiles(mergeNoteExpansion(FULL_DATABASE));
 FULL_DATABASE.splice(0, FULL_DATABASE.length, ...PERFUME_DATABASE);
-export { DATABASE_RESEARCH_VERSION };
+export { DATABASE_RESEARCH_VERSION, getNoteLayerProfile };
 
 export const categoryLabel = (category: string) => {
   const labels: Record<string, string> = {
-    citrus: 'Citrus',
-    greens: 'Green & Aromatic',
-    flowers: 'Floral',
-    whiteFlowers: 'White Floral',
-    fruits: 'Fruit',
-    spices: 'Spice & Botanical',
-    sweets: 'Gourmand',
-    woods: 'Wood',
-    resins: 'Resin & Amber',
-    musk: 'Musk & Animalic',
-    beverages: 'Beverage',
-    syntheticWeird: 'Synthetic & Experimental',
-    uncategorized: 'Unclassified',
-    Custom: 'Custom',
+    citrus: 'Citrus', greens: 'Green & Aromatic', flowers: 'Floral', whiteFlowers: 'White Floral',
+    fruits: 'Fruit', spices: 'Spice & Botanical', sweets: 'Gourmand', woods: 'Wood',
+    resins: 'Resin & Amber', musk: 'Musk & Animalic', beverages: 'Beverage',
+    syntheticWeird: 'Synthetic & Experimental', uncategorized: 'Unclassified', Custom: 'Custom',
   };
   return labels[category] ?? category;
 };
@@ -63,6 +51,12 @@ const poolFor = (layer: Layer, includeExperimental: boolean, excluded: Set<strin
     return !excluded.has(note.name.toLocaleLowerCase());
   });
 
+const allNotesPool = (includeExperimental: boolean, excluded: Set<string>) =>
+  uniqueByName(PERFUME_DATABASE).filter((note) => {
+    if (!includeExperimental && isExperimentalNote(note)) return false;
+    return !excluded.has(note.name.toLocaleLowerCase());
+  });
+
 export const getRandomRecipeWithLocks = (
   counts: Record<Layer, number>,
   includeExperimental: Record<Layer, boolean>,
@@ -87,6 +81,21 @@ export const getRandomRecipeWithLocks = (
   const seedPool = [...mid, ...base, ...top];
   const entity = seedPool.length ? shuffle(seedPool)[0].name.split(' ')[0] : 'Élixir';
   const prefix = shuffle(PREFIXES)[0] ?? 'Atelier';
-
   return { name: `${prefix} ${entity}`, top, mid, base };
+};
+
+export const getRandomNotesListWithLocks = (
+  count: number,
+  includeExperimental: boolean,
+  locked: Note[],
+): Note[] => {
+  const fixed = uniqueByName(locked).slice(0, count);
+  const reserved = new Set(fixed.map((note) => note.name.toLocaleLowerCase()));
+  const picked = shuffle(allNotesPool(includeExperimental, reserved)).slice(0, Math.max(0, count - fixed.length));
+  return [...fixed, ...picked];
+};
+
+export const getCompositionName = (notes: Note[]) => {
+  const entity = notes.length ? shuffle(notes)[0].name.split(' ')[0] : 'Élixir';
+  return `${shuffle(PREFIXES)[0] ?? 'Atelier'} ${entity}`;
 };
