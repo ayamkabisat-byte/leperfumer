@@ -1,12 +1,13 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
 
-export const metadata = {
-  title: 'Le Parfumeur — Laboratorium Aroma',
-  description: 'Laboratorium parfum AI. Database 1.800+ notes.',
+export const metadata: Metadata = {
+  title: 'Le Parfumeur — Olfactory Atelier',
+  description: 'Racik formula aroma, analisis dengan AI, dan arsipkan konsep parfum Anda.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="id">
       <head>
@@ -18,30 +19,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <nav className="sticky top-0 z-50 backdrop-blur-md"
-          style={{ background: 'rgba(12,13,15,0.82)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <div className="max-w-6xl mx-auto flex justify-between items-center px-6 py-4">
-            <Link href="/"
-              className="font-serif-lab text-xl font-normal flex items-center gap-2"
-              style={{ letterSpacing: '0.04em', color: '#e8e6e0' }}>
-              <span className="inline-flex items-center justify-center w-[22px] h-[22px] rounded-full"
-                style={{ border: '1.5px solid oklch(72% 0.18 68)', opacity: 0.85 }}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                  <circle cx="5" cy="5" r="4" stroke="oklch(72% 0.18 68)" strokeWidth="1.2" fill="none"/>
-                  <circle cx="5" cy="5" r="1.5" fill="oklch(72% 0.18 68)" opacity="0.7"/>
-                </svg>
-              </span>
-              Le Parfumeur
+        <div className="app-nav-wrap">
+          <nav className="app-nav site-shell flex items-center justify-between px-5 md:px-6">
+            <Link href="/" className="flex items-center gap-3 no-underline" style={{ color: 'var(--paper)' }}>
+              <span className="brand-mark" aria-hidden="true" />
+              <span className="brand-name font-serif-lab text-[22px] tracking-[0.02em]">Le Parfumeur</span>
             </Link>
-
-            <div className="flex gap-7 font-mono-lab uppercase"
-              style={{ fontSize: '13px', letterSpacing: '0.06em' }}>
-              <Link href="/"         className="nav-link" style={{ color: '#7a7872', textDecoration: 'none' }}>Racik</Link>
-              <Link href="/gallery"  className="nav-link" style={{ color: '#7a7872', textDecoration: 'none' }}>Galeri</Link>
-              <Link href="/settings" className="nav-link" style={{ color: '#7a7872', textDecoration: 'none' }}>Setelan</Link>
+            <div className="nav-links flex items-center gap-7 font-mono-lab uppercase text-[11px] tracking-[0.1em]">
+              <Link href="/" className="nav-link">Atelier</Link>
+              <Link href="/gallery" className="nav-link">Archive</Link>
+              <Link href="/settings" className="nav-link">Settings</Link>
             </div>
-          </div>
-        </nav>
+          </nav>
+        </div>
         {children}
       </body>
     </html>
