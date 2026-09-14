@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Le Parfumeur
 
-## Getting Started
+Olfactory composition studio built with Next.js, Supabase, and Gemini. Compose fragrance pyramids from a large note database, lock ingredients, request a structured AI critique, generate a visual moodboard prompt, and archive finished concepts.
 
-First, run the development server:
+## Stack
+
+- Next.js 16 / React 19 / TypeScript
+- Tailwind CSS 4
+- Supabase Database + Storage
+- Google Gemini API (default: `gemini-3.8-flash`)
+
+## Environment variables
+
+Create `.env.local`:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+SUPABASE_SERVICE_KEY=...
+GEMINI_API_KEY=...
+GEMINI_MODEL=gemini-3.8-flash
+GALLERY_UPLOAD_TOKEN=use-a-long-random-secret
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`SUPABASE_SERVICE_KEY` and `GALLERY_UPLOAD_TOKEN` are server-only secrets. Never expose them with a `NEXT_PUBLIC_` prefix.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The browser Settings page can optionally store a personal Gemini key (BYOK) and the gallery upload token in localStorage. Leave the Gemini field empty to use the server key.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Supabase
 
-## Learn More
+Expected storage bucket: `perfume-images`.
 
-To learn more about Next.js, take a look at the following resources:
+Expected `perfumes` columns:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `id`
+- `name`
+- `top_notes`
+- `mid_notes`
+- `base_notes`
+- `image_url`
+- `created_at`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The gallery reads through the anon client, so configure RLS to allow only the public read behavior you actually want. Gallery writes go through the server route and require `GALLERY_UPLOAD_TOKEN` in production.
 
-## Deploy on Vercel
+## Development
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm install
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Then open `http://localhost:3000`.
+
+Before deployment:
+
+```bash
+npm run lint
+npm run build
+```
+
+## AI contract
+
+The AI route returns structured JSON rather than model-generated HTML. This keeps the UI predictable and avoids rendering AI output with `dangerouslySetInnerHTML`. Supported UI-selectable models are `gemini-3.8-flash`, `gemini-3.7-flash`, and `gemini-3.6-flash`.
