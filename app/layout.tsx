@@ -4,6 +4,7 @@ import ThemeSwitcher from '@/components/ThemeSwitcher';
 import './globals.css';
 import './warm-bento-v2.css';
 import './nocturne.css';
+import './nocturne-explorer.css';
 
 export const metadata: Metadata = {
   title: 'Le Parfumeur — Olfactory Atelier',
