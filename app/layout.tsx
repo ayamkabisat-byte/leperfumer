@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import './globals.css';
+import './warm-bento-v2.css';
 
 export const metadata: Metadata = {
   title: 'Le Parfumeur — Olfactory Atelier',
